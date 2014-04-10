@@ -1,3 +1,0 @@
-// the configured options and settings for Tutorial
-#define go_influence_map_VERSION_MAJOR @go_influence_map_VERSION_MAJOR@
-#define go_influence_map_VERSION_MINOR @go_influence_map_VERSION_MINOR@
