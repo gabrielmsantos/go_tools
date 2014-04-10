@@ -1,0 +1,3 @@
+// the configured options and settings for Tutorial
+#define lib_go_utils_VERSION_MAJOR @lib_go_utils_VERSION_MAJOR@
+#define lib_go_utils_VERSION_MINOR @lib_go_utils_VERSION_MINOR@
