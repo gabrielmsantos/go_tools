@@ -40,13 +40,21 @@ configure_file(
   )
 
 #The go_utils headers
-include_directories("${PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
+include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
+
+#Go Database library
+include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MEMORY/")
 
 if(UNIX)
     #This sets where you have installed SFML
     set(SFML_ROOT "/home/gabriel/libraries/SFML-2.1")
+
     #Go Utils lib
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.so")
+
+    #Go Database lib
+    set(GO_DATABASE "/home/gabriel/coding/GO_TOOLS/LIB_GO_MEMORY-build/libgo_memory.so")
+
 elseif(WIN32)
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.dll")
     set(SFML_ROOT "C:/Program Files (x86)/SFML/")
@@ -62,7 +70,9 @@ elseif(WIN32)
 endif()
 
 MESSAGE("LIB GO: " ${Go_UTILS_library})
-MESSAGE("INCLUDES ${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
+MESSAGE("LIB GO DATABASE: " ${GO_DATABASE})
+MESSAGE("INCLUDES: ${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
+MESSAGE("INCLUDES: ${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MEMORY/" )
 
 # Define sources and executable
 set(EXECUTABLE_NAME "go_influence_map")
@@ -82,7 +92,7 @@ if(UNIX)
     find_package(SFML 2 REQUIRED system window graphics network audio)
     if(SFML_FOUND)
       include_directories(${SFML_INCLUDE_DIR} )
-      target_link_libraries(${EXECUTABLE_NAME} ${Go_UTILS_library} ${SFML_LIBRARIES} GLEW)
+      target_link_libraries(${EXECUTABLE_NAME} ${Go_UTILS_library} ${GO_DATABASE} ${SFML_LIBRARIES} GLEW)
     endif()
 
 elseif(WIN32)
@@ -173,6 +183,7 @@ elseif(WIN32)
 
     #Linking libraries with application
     TARGET_LINK_LIBRARIES( ${EXECUTABLE_NAME}
+            ${GO_DATABASE}
             ${Go_UTILS_library}
             ${link_sfml_main}
             ${link_sfml_graphics}

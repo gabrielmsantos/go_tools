@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <algorithm>
+#include <utility>
 #include <unordered_set>
 #include <boost/functional/hash.hpp>
 #include <boost/shared_ptr.hpp>
@@ -19,7 +20,31 @@ enum StoneState{
     EMPTY,
     BLACK
 };
+//=================== Flags to be used on variations =============
+enum CBFlag
+{
+    R0 = 0,
+    R90 = 1,
+    R180 = 2,
+    R270 = 3,
+    MIRRORED = 1 << 2,
+    INVERSED = 1 << 3
+};
 
+static unsigned char GetRotation(CBFlag flag)
+{
+    return flag & (unsigned char)3;
+}
+
+static bool IsMirrored(CBFlag flag)
+{
+    return flag & MIRRORED;
+}
+
+static bool IsInversed(CBFlag flag)
+{
+    return flag & INVERSED;
+}
 //=================== Move Struct ================================
 typedef struct Move
 {
@@ -37,15 +62,22 @@ typedef struct Move
 //=================== CompactBoard Struct ================================
 typedef struct CompactBoard
 {
-    unsigned int* m_compact_board;
-    unsigned int  m_size;
+    unsigned int* m_compact_board;    
     unsigned short m_black_prisoners;
     unsigned short m_white_prisoners;
+    unsigned char  m_size;    
 
     //============================== The Big Three =======================
     CompactBoard()
     {
         /**This representation supports up to 19x19 boardsize. In case of changing this specification, MAX_BOARD should be changed.*/
+        /** For 19x19 boards total size of CompactBoard struct:
+        - 24 bytes for the board representation ( [0-11] -> White space [12-23]->Black Space )
+        - 1 byte m_size
+        - 2 bytes m_black_prisoners
+        - 2 bytes m_white prisoners
+        = 29 bytes
+        */
         unsigned int one_board_bytes = ceil( (double)(MAX_BOARD*MAX_BOARD)/(sizeof(unsigned int) * SIZE_BYTE) );
 
         m_size = 2*one_board_bytes;
@@ -54,14 +86,17 @@ typedef struct CompactBoard
 
         Clear();
     }
-
+    //================================================================================
     CompactBoard(const CompactBoard& compact_copy)
     {
         m_size = compact_copy.m_size;
 
+        m_compact_board =  new unsigned int[m_size]; //( [0-11] -> White space [12-23]->Black Space )
+
         //copy prisoners
         m_black_prisoners = compact_copy.m_black_prisoners;
         m_white_prisoners = compact_copy.m_white_prisoners;
+
 
         for(unsigned int i=0; i< m_size; ++i)
         {
@@ -69,14 +104,20 @@ typedef struct CompactBoard
         }
 
     }
-
+    //================================================================================
     CompactBoard& operator=(const CompactBoard& compact_copy)
     {
         m_size = compact_copy.m_size;
 
+        //delete previous data
+        delete[] m_compact_board;
+
+        m_compact_board =  new unsigned int[m_size]; //( [0-11] -> White space [12-23]->Black Space )
+
         //copy prisoners
         m_black_prisoners = compact_copy.m_black_prisoners;
         m_white_prisoners = compact_copy.m_white_prisoners;
+
 
         for(unsigned int i=0; i< m_size; ++i)
         {
@@ -107,6 +148,7 @@ typedef struct CompactBoard
         delete[] m_compact_board;
     }
 
+    //================================================================================
     /** Return the number of different bits from another board_representation (Including prisoners)*/
     unsigned int XOR(const CompactBoard * p_compact_board)
     {
@@ -131,6 +173,216 @@ typedef struct CompactBoard
         return total;
     }
 
+    //================================================================================
+    /** Return the number of stones present in the current state*/
+    unsigned short GetNumberOfStones()
+    {
+        unsigned short total = 0;
+        unsigned int l_xor;
+        for(unsigned int i = 0; i < m_size; ++i)
+        {
+            l_xor= m_compact_board[i] ^ 0;
+
+            for(unsigned int j=0; j < ( sizeof(unsigned int) * SIZE_BYTE ); ++j)
+            {
+                if( ( l_xor & ( (unsigned int ) 1 << j ) ) > 0 )
+                {
+                    ++total;
+                }
+            }
+        }
+        return total;
+    }
+
+    //================================================================================
+    std::vector<std::pair<CompactBoard*, CBFlag> > GetAllVariations()
+    {
+
+        std::vector<std::pair<CompactBoard*, CBFlag> > all_variations;
+
+        CompactBoard* cb = new CompactBoard(*this);
+        CompactBoard* cb_inv;
+        CompactBoard* cb_mirr;
+        CompactBoard* cb_inv_mirr;
+
+        //For each rotation version get its inversed and mirrored version as well.
+        for(unsigned int i = 0; i < 4; ++i )
+        {
+            if(i>0)
+            {
+                cb = cb->GetRotatedClockwiseVariation();
+            }
+
+            //Just the original rotated (0, 90, 180 or 270 degrees)
+            all_variations.push_back(std::make_pair(cb, (CBFlag)i ));
+
+            //Get its mirrored variation
+            cb_mirr = cb->GetMirroredVariation();
+            all_variations.push_back(std::make_pair(cb_mirr, (CBFlag) ( i | MIRRORED) ) );
+
+            //Get its inversed version
+            cb_inv = cb->GetInversedVariation();
+            all_variations.push_back(std::make_pair(cb_inv, (CBFlag) (i | INVERSED ) ) );
+
+            cb_inv_mirr = cb_inv->GetMirroredVariation();
+            all_variations.push_back(std::make_pair(cb_inv_mirr, (CBFlag) (i | INVERSED | MIRRORED) ) );
+        }
+
+        return all_variations;
+    }
+
+    //================================================================================
+private:
+
+    //================================================================================
+    /*Verify if a specific position is set (due a specific color) */
+    bool IsSet(int row, int column, StoneState stone)
+    {
+        unsigned int position = ( row * MAX_BOARD) + column;
+        unsigned int start = (((stone+1)/2)*HalfSize()) ;
+        unsigned int byte_pos = start + ( position/(sizeof(unsigned int) * SIZE_BYTE) );
+        unsigned int offset = position % (sizeof(unsigned int) * SIZE_BYTE);
+
+        assert(byte_pos < m_size);
+        return ( (m_compact_board[byte_pos] & (unsigned int) 1 << offset)  > 0 );
+    }
+
+    //================================================================================
+    /* Set a specific position of the CompactBoard (due a specific color) **/
+    void SetPosition(int row, int column, StoneState stone)
+    {
+        unsigned int position = ( row * MAX_BOARD) + column;
+        unsigned int start = (((stone+1)/2)*HalfSize()) ;
+        unsigned int byte_pos = start + ( position/(sizeof(unsigned int) * SIZE_BYTE) );
+        unsigned int offset = position % (sizeof(unsigned int) * SIZE_BYTE);
+
+        if(byte_pos > m_size)
+        {
+            std::cout << "r: "<< row << " c: "<<column << " -- "<< stone  <<std::endl;
+            std::cout << "p: "<<position << " s: "<<start << " bp: "<<byte_pos << std::endl;
+            std::cout << byte_pos << " *** "<< (unsigned int) m_size <<std::endl;
+            assert(byte_pos < m_size);
+        }
+
+        m_compact_board[byte_pos] |= ( (unsigned int) 1 << offset );
+    }
+
+
+    //================================================================================
+    /*Rotates the CompactBoard clockwise and returns a new (rotated) CompactBoard*/
+    CompactBoard* GetRotatedClockwiseVariation()
+    {
+        CompactBoard* cb_rotated = new CompactBoard();
+
+        /**Copying properties*/
+        cb_rotated->m_black_prisoners = m_black_prisoners;
+        cb_rotated->m_white_prisoners = m_white_prisoners;
+        cb_rotated->m_size = m_size;
+
+        //Rotating the board
+        for(int i = 0; i < MAX_BOARD; ++i)
+        {
+            for(int j =0; j< MAX_BOARD; ++j)
+            {
+                if(IsSet(i,j,BLACK))
+                {
+                    cb_rotated->SetPosition(MAX_BOARD-1-j, i,BLACK);
+                }
+
+                else if(IsSet(i,j,WHITE))
+                {
+                    cb_rotated->SetPosition(MAX_BOARD-1-j, i,WHITE);
+                }
+            }
+        }
+
+        return cb_rotated;
+    }
+
+    //======================== Test purposes ==========================================
+    void PrintCompactBoard()
+    {
+        //Rotating the board
+        for(int i = 0; i < MAX_BOARD; ++i)
+        {
+            for(int j =0; j< MAX_BOARD; ++j)
+            {
+                if(IsSet(i,j,BLACK))
+                {
+                    std::cout << i << " ** " << j << " B" << std::endl;
+                }
+
+                else if(IsSet(i,j,WHITE))
+                {
+                    std::cout << i << " ** " << j << " W" << std::endl;
+                }
+            }
+        }
+
+    }
+
+    //================================================================================
+    /**Returns its inversed variation*/
+    CompactBoard* GetInversedVariation()
+    {
+        CompactBoard* cb_inversed= new CompactBoard();
+
+        /**Copying properties*/
+        cb_inversed->m_black_prisoners = m_white_prisoners;
+        cb_inversed->m_white_prisoners = m_black_prisoners;
+        cb_inversed->m_size = m_size;
+
+        //Rotating the board
+        for(int i = 0; i < MAX_BOARD; ++i)
+        {
+            for(int j =0; j< MAX_BOARD; ++j)
+            {
+                if(IsSet(i,j,BLACK))
+                {
+                    cb_inversed->SetPosition(i,j,WHITE);
+                }
+                else if(IsSet(i,j,WHITE))
+                {
+                    cb_inversed->SetPosition(i,j,BLACK);
+                }
+
+            }
+        }
+
+        return cb_inversed;
+
+    }
+    //================================================================================
+    /**Returns its mirrored variation*/
+    CompactBoard* GetMirroredVariation()
+    {
+        CompactBoard* cb_mirrored= new CompactBoard();
+
+        /**Copying properties*/
+        cb_mirrored->m_black_prisoners = m_white_prisoners;
+        cb_mirrored->m_white_prisoners = m_black_prisoners;
+        cb_mirrored->m_size = m_size;
+
+        //@TODO: THIS WILL NOR WORK FOR BOARD_SIZE != 19
+        //Rotating the board
+        for(int i = 0; i < MAX_BOARD; ++i)
+        {
+            for(int j =0; j< MAX_BOARD; ++j)
+            {
+                if(IsSet(i,j,BLACK))
+                {
+                    cb_mirrored->SetPosition((MAX_BOARD-1)-i,j,BLACK);
+                }
+                else if(IsSet(i,j,WHITE))
+                {
+                    cb_mirrored->SetPosition((MAX_BOARD-1)-i,j,WHITE);
+                }
+
+            }
+        }
+
+        return cb_mirrored;
+    }
 }CompactBoard;
 
 //========================================================================
@@ -200,7 +452,6 @@ private:
     }
 
 };
-
 //=================== Dragon Class ================================
 class Dragon
 {
@@ -349,10 +600,10 @@ public:
 
     void SetFromCompactBoard(CompactBoard *p_compact_board);
 
+
 private:
 
     std::vector<std::vector<GobanIntersection> > m_intersections;
-    //boost::shared_ptr<InfluenceModel> m_influence_model;
 
     unsigned short m_black_prisoners;
     unsigned short m_white_prisoners;

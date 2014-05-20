@@ -6,7 +6,7 @@
 //================================================================================
 Goban::Goban(int board_size):
     m_intersections(board_size),
-    m_black_prisoners(0),
+    m_black_prisoners(0),    
     m_white_prisoners(0)
 {
     for(unsigned int i = 0; i < m_intersections.size(); ++i)
@@ -21,6 +21,7 @@ Goban::Goban(int board_size):
 //================================================================================
 Goban::~Goban()
 {
+    //std::cout <<"Destructing Goban" << std::endl;
 }
 //================================================================================
 bool Goban::PutStone(const sf::Vector2i& r_mapPosition, StoneState stone)
@@ -99,7 +100,6 @@ StoneState Goban::Opponent(StoneState stone) const
 {
     return (StoneState)((int)stone * (-1));
 }
-
 //================================================================================
 unsigned short Goban::RemoveDragon(Dragon* l_dragon)
 {
@@ -213,7 +213,7 @@ CompactBoard* Goban::GetCompactBoard() const
     CompactBoard* l_compact_board = new CompactBoard();
 
     l_compact_board->m_black_prisoners = m_black_prisoners;
-    l_compact_board->m_white_prisoners = m_white_prisoners;
+    l_compact_board->m_white_prisoners = m_white_prisoners;    
 
     //Compacting the board representation
     for(unsigned int i = 0; i< m_intersections.size(); ++i)

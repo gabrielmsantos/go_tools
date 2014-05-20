@@ -2,16 +2,29 @@
 #include "GoInfluenceModel/CrossInfluence.h"
 
 //===============================================================================================
-GoGame::GoGame(int board_size):
-    m_influenceMap(board_size)
+GoGame::GoGame(int board_size, boost::shared_ptr<GoReferee> l_referee):
+    m_goban(board_size),
+    m_goReferee_sptr(l_referee)
 {
-    m_game_tree.InsertNewNode(new GoGameNode(0, m_influenceMap.GetCompactBoard()));
+    m_game_tree.InsertNewNode(new GoGameNode(0, m_goban.GetCompactBoard()));
     m_currentPlayer = BLACK;
+}
+//===============================================================================================
+void GoGame::PlayMove(int i, int j ,StoneState stone)
+{
+    sf::Vector2i l_map_pos(i,j);
+    PlayMove(l_map_pos, stone);
+}
+//===============================================================================================
+void GoGame::PlayMove(sf::Vector2i &l_map_pos ,StoneState stone)
+{
+    m_currentPlayer = stone;
+    PlayMove(l_map_pos);
 }
 //===============================================================================================
 void GoGame::PlayMove(sf::Vector2i& l_mapPos)
 {
-    int board_size = m_influenceMap.GetGoban().size();
+    int board_size = m_goban.GetGoban().size();
 
     CompactBoard* l_previous_state = 0;
     CompactBoard* l_next_state = 0;
@@ -21,7 +34,7 @@ void GoGame::PlayMove(sf::Vector2i& l_mapPos)
 
     if(l_mapPos.x >= 0 && l_mapPos.y >= 0 && l_mapPos.x < board_size && l_mapPos.y < board_size)
     {
-        if(m_goReferee.IsLegal(m_currentPlayer,l_mapPos, m_influenceMap))
+        if(m_goReferee_sptr->IsLegal(m_currentPlayer,l_mapPos, m_goban))
         {
             l_node = m_game_tree.GetCurrentNode()->GetParent();
 
@@ -30,26 +43,36 @@ void GoGame::PlayMove(sf::Vector2i& l_mapPos)
                 l_previous_state = l_node->GetCompactBoard();
             }
 
-            l_current_state = m_influenceMap.GetCompactBoard();
+            l_current_state = m_goban.GetCompactBoard();
 
 
-            if(m_influenceMap.PutStone(l_mapPos, m_currentPlayer))
+            if(m_goban.PutStone(l_mapPos, m_currentPlayer))
             {
-                l_next_state = m_influenceMap.GetCompactBoard();
+                l_next_state = m_goban.GetCompactBoard();
 
                 //Verify KO
                 if( (l_previous_state) && ( l_next_state->XOR(l_previous_state) == 0) ) //KO
                 {
-                    m_influenceMap.SetFromCompactBoard(l_current_state);
+                    m_goban.SetFromCompactBoard(l_current_state);
                     delete l_next_state;
                     delete l_current_state;
                     return;
 
                 }else
                 {
-                    m_currentPlayer = (StoneState) ((int) m_currentPlayer * (-1));
+                    /** The move that leads to the next state and the player who made it.
+                      If the move is negative then it was made by the white player, otherwise it the black player
+                    */
+                    //short move = (((l_mapPos.x+1)* (MAX_BOARD+1)) + (l_mapPos.y+1)) * m_currentPlayer;
 
-                    unsigned short move = ((l_mapPos.x+1)* (MAX_BOARD+1)) + (l_mapPos.y+1);
+                    short move = (((l_mapPos.x)* (MAX_BOARD)) + (l_mapPos.y)) * m_currentPlayer;
+
+//                    std::cout << "x: " << l_mapPos.x << std::endl;
+//                    std::cout << "y: " << l_mapPos.y << std::endl;
+//                    std::cout << "move: " << move << std::endl;
+//                    std::cout << "---  "  << std::endl;
+
+                    m_currentPlayer = (StoneState) ((int) m_currentPlayer * (-1));
 
                     m_game_tree.InsertNewNode(new GoGameNode(move, l_next_state));
                 }
@@ -63,15 +86,16 @@ void GoGame::PlayMove(sf::Vector2i& l_mapPos)
 
 Goban& GoGame::GetMainBoard()
 {
-    return m_influenceMap;
+    return m_goban;
 }
 
 //===============================================================================================
 GoGame::~GoGame()
 {
+    //std::cout <<"Destructing GoGame" << std::endl;
 }
 //===============================================================================================
-void GoGame::TakeBack(bool invert_player)
+void GoGame::TakeBack()
 {
     GoGameNode* l_node = 0;
     bool took = m_game_tree.TakeBack(&l_node);
@@ -79,12 +103,12 @@ void GoGame::TakeBack(bool invert_player)
     if(took)
     {
         assert(l_node!= NULL);
-        m_influenceMap.SetFromCompactBoard(l_node->GetCompactBoard());
+        m_goban.SetFromCompactBoard(l_node->GetCompactBoard());
 
-        if(invert_player)
-        {
-            m_currentPlayer = (StoneState) ((int) m_currentPlayer * (-1));
-        }
+        if(l_node->GetMove() > 0)
+            m_currentPlayer = WHITE;
+        else
+            m_currentPlayer = BLACK;
     }
 }
 //===============================================================================================
@@ -95,7 +119,18 @@ void GoGame::AddInfluenceAnalysis(I_InfluenceModel* influence_model)
 //===============================================================================================
 void GoGame::RegisterObserver(I_GobanObserver* observer)
 {
-    m_influenceMap.RegisterObserver(observer);
+    m_goban.RegisterObserver(observer);
+}
+//===============================================================================================
+
+GoGameTree& GoGame::GetGameTree()
+{
+    return m_game_tree;
+}
+//===============================================================================================
+GoGameInfo& GoGame::GetGameInfo()
+{
+    return m_game_info;
 }
 //===============================================================================================
 I_InfluenceModel& GoGame::GetActiveInfluenceModel()
@@ -103,3 +138,5 @@ I_InfluenceModel& GoGame::GetActiveInfluenceModel()
     std::unordered_set<I_InfluenceModel*>::iterator it = m_influences_analysis.begin();
     return *(*it);
 }
+
+CompactBoard* GoGame::cb_static = NULL;

@@ -2,14 +2,14 @@
 #define GOBANGUI_H
 
 #include "ColoredSquare.h"
-#include "../Goban.h"
-#include "../GoInfluenceStatistics/I_GobanStatistics.h"
+#include "Goban.h"
+#include "GoInfluenceStatistics/I_GobanStatistics.h"
 
 class GobanGUI
 {
 public:
     GobanGUI(int board_size);
-    void Draw(sf::RenderTarget& r_target, Goban& r_goban, I_GobanStatistics& r_statistics, I_InfluenceModel& r_influence);
+    void Draw(sf::RenderTarget& r_target, Goban& r_goban, I_GobanStatistics& r_statistics, I_InfluenceModel& r_influence, std::vector<short>& move_sugestion);
     void MapClick(const sf::Vector2i& r_clickPosition, sf::Vector2i& r_mapPosition);
 
 private:
@@ -24,6 +24,11 @@ private:
     sf::Texture m_blackTexture;
     sf::Texture m_whiteTexture;
     sf::Texture m_pointTexture;
+
+    sf::Texture m_blackAdvisorTexture;
+    sf::Texture m_whiteAdvisorTexture;
+    sf::Texture m_mixedAdvisorexture;
+
     sf::Font m_font;
 
     //board GUI

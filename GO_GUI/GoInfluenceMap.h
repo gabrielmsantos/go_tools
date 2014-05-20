@@ -12,6 +12,7 @@
 #include <SFML/Graphics.hpp>
 #include "GoGUI/GobanGUI.h"
 #include "GoGame.h"
+#include "GoDatabase.h"
 
 
 class GoInfluenceMap {
@@ -37,7 +38,10 @@ private:
     static I_GobanStatistics* m_goban_statistics;
 
     static GobanGUI m_gobanGUI;
+    static GoDatabase m_go_database;
+    static boost::shared_ptr<GoReferee> m_go_referee_ptr;
     static GoGame m_gogame;
+    static std::vector<short> m_advisor_map;
 };
 
 #endif /* defined(__GoInfluenceMap__GoInfluenceMap__) */

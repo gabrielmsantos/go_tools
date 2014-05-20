@@ -17,11 +17,11 @@ class GoGameNode;
 //=============== Node Entry struct ======================
 typedef struct node_entry_t
 {
-    unsigned short m_move;
+    short m_move;
 //    boost::shared_ptr<GoGameNode > m_node_ptr;
     GoGameNode * m_node_ptr;
 
-    node_entry_t(unsigned short move, GoGameNode* node):m_move(move), m_node_ptr(node){}
+    node_entry_t(short move, GoGameNode* node):m_move(move), m_node_ptr(node){}
 
 } node_entry;
 
@@ -37,7 +37,7 @@ typedef multi_index_container<
 node_entry,
 indexed_by<
 random_access<>,
-hashed_unique<tag <move_code_t>, member <node_entry, unsigned short, &node_entry::m_move > >
+hashed_unique<tag <move_code_t>, member <node_entry, short, &node_entry::m_move > >
 >
 > node_container_t;
 
@@ -61,18 +61,21 @@ class GoGameNode
 {
 public:
 
-    explicit GoGameNode(unsigned short move, CompactBoard* compact_board)
+    explicit GoGameNode(short move, CompactBoard* compact_board)
         :m_move(move),
-          m_parent(0),
+          m_parent(NULL),
           m_compact_board(compact_board)
     {
     }
+
+    GoGameNode(const GoGameNode& node_copy);
+
 
     ~GoGameNode();
 
     bool HasChildren() const;
 
-    GoGameNode* GetChild(unsigned short move) const;
+    GoGameNode* GetChild(short move) const;
 
     inline GoGameNode* FirstChild() const
     {
@@ -98,7 +101,7 @@ public:
         return m_compact_board;
     }
 
-    inline unsigned short GetMove() const
+    inline short GetMove() const
     {
         return m_move;
     }
@@ -108,11 +111,22 @@ public:
         return m_parent;
     }
 
+    GoGameNode& operator=(GoGameNode& node_copy);
+
+    GoGameNode* GetNodeInSubTree(short move, CompactBoard* l_compact_board) const;
+
+    const node_container_t& GetChildrenContainer() const;
+
+    void PrintSubTree() const;
+
 private:
 
-    void RemoveChildFromContainer(unsigned short move);
+    void RemoveChildFromContainer(short move);
 
-    unsigned short m_move;
+    /** The move that created the state represented by compact board
+      If the move is negative then it was made by the white player, otherwise it the black player
+    */
+    short m_move;
     GoGameNode* m_parent;
     node_container_t m_children_container;
     CompactBoard* m_compact_board;
@@ -124,12 +138,16 @@ class GoGameTree
 public:
 
     GoGameTree();
+    GoGameTree(const GoGameTree& tree_copy);
 
     ~GoGameTree()
-    {        
+    {
         delete m_root;
+        m_root= NULL;
         m_current_node = NULL;
     }
+
+    GoGameTree& operator=(const GoGameTree& tree_copy);
 
     inline GoGameNode* GetCurrentNode() const
     {
@@ -139,6 +157,10 @@ public:
     void InsertNewNode(GoGameNode* child);
 
     bool TakeBack(GoGameNode **node);
+
+    void BackToNode(GoGameNode *node);
+
+    GoGameNode* GetRoot();
 
 private:
     GoGameNode* m_root;

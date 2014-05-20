@@ -48,6 +48,9 @@ GobanGUI::GobanGUI(int board_size):
     m_whiteTexture.loadFromFile( "Images/white.png");
     m_pointTexture.loadFromFile( "Images/point.png");
 
+    m_blackAdvisorTexture.loadFromFile( "Images/black_adv.png");
+    m_whiteAdvisorTexture.loadFromFile( "Images/white_adv.png");
+    m_mixedAdvisorexture.loadFromFile( "Images/mixed_adv.png");
 
     //Calculating number of points
     double board_factor = board_size/3.0f;
@@ -91,11 +94,55 @@ void GobanGUI::MapClick(const sf::Vector2i& r_clickPosition, sf::Vector2i& r_map
     r_mapPosition.y =   ((r_clickPosition.y-m_start_y) / (SPRITE_HEIGHT + LINE_THICKNESS));
 }
 //================================================================================
-void GobanGUI::Draw(sf::RenderTarget& r_target, Goban& r_goban, I_GobanStatistics &r_statistics, I_InfluenceModel& r_influence)
+void GobanGUI::Draw(sf::RenderTarget& r_target, Goban& r_goban, I_GobanStatistics &r_statistics, I_InfluenceModel& r_influence, std::vector<short>& move_sugestion)
 {
 
     assert((unsigned int)r_goban.Dimension() == m_colored_squares.size());
     assert(m_colored_squares[0].size() == (unsigned int) r_goban.Dimension());
+
+
+    //================= START MOVE ADVISOR MAP ==============================
+    /** Creating move advisor map*/
+    std::vector< std::vector <char> > l_move_advisor_map(MAX_BOARD);
+
+    //Setting Move Advisor Map
+    for(unsigned int i = 0; i < l_move_advisor_map.size(); ++i)
+    {
+        l_move_advisor_map[i] = std::vector<char>( MAX_BOARD);
+    }
+
+    for(unsigned int  i = 0; i < move_sugestion.size(); ++i)
+    {
+        short move = move_sugestion[i];
+
+        short row =  abs(move)/MAX_BOARD;
+        short column = abs(move)%MAX_BOARD;
+
+        if(move > 0)
+        {
+            if(l_move_advisor_map[row][column] == 'w')
+            {
+                l_move_advisor_map[row][column] = 'm';
+
+            }else if(l_move_advisor_map[row][column] != 'm')
+            {
+                l_move_advisor_map[row][column] = 'b';
+            }
+        }else
+        {
+            if(l_move_advisor_map[row][column] == 'b')
+            {
+                l_move_advisor_map[row][column] = 'm';
+
+            }else if(l_move_advisor_map[row][column] != 'm')
+            {
+                l_move_advisor_map[row][column] = 'w';
+            }
+
+        }
+
+    }
+    //================= END MOVE ADVISOR MAP ==============================
 
     //First Draw influences
     for(unsigned int i = 0; i < (unsigned int) r_goban.Dimension(); ++i)
@@ -184,8 +231,18 @@ void GobanGUI::Draw(sf::RenderTarget& r_target, Goban& r_goban, I_GobanStatistic
             }else if(r_goban.GetStone(i,j) == WHITE)
             {
                 m_stone_sprites[i][j].setTexture(m_whiteTexture);
-            }else
+            }else if (l_move_advisor_map[i][j] == 'b')
             {
+                m_stone_sprites[i][j].setTexture(m_blackAdvisorTexture);
+            }else if (l_move_advisor_map[i][j] == 'w')
+            {
+                m_stone_sprites[i][j].setTexture(m_whiteAdvisorTexture);
+            }else if (l_move_advisor_map[i][j] == 'm')
+            {
+                m_stone_sprites[i][j].setTexture(m_mixedAdvisorexture);
+            }
+            else
+            {                
                 continue;
             }
 
