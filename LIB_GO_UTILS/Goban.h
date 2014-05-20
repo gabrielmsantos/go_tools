@@ -13,6 +13,7 @@
 
 #define SIZE_BYTE 8
 #define MAX_BOARD 19
+#define MIN_BOARD 4
 
 //=================== Stone State ================================
 enum StoneState{
@@ -31,44 +32,30 @@ enum CBFlag
     INVERSED = 1 << 3
 };
 
-static unsigned char GetRotation(CBFlag flag)
-{
-    return flag & (unsigned char)3;
-}
-
-static bool IsMirrored(CBFlag flag)
-{
-    return flag & MIRRORED;
-}
-
-static bool IsInversed(CBFlag flag)
-{
-    return flag & INVERSED;
-}
 //=================== Move Struct ================================
-typedef struct Move
-{
-    Move(StoneState s,const sf::Vector2i& pos)
-        :m_stone(s),
-          m_position(pos)
+//typedef struct Move
+//{
+//    Move(StoneState s,const sf::Vector2i& pos)
+//        :m_stone(s),
+//          m_position(pos)
+//    {
+//    }
 
-    {
-    }
+//    StoneState  m_stone;
+//    sf::Vector2i m_position;
+//}Move;
 
-    StoneState  m_stone;
-    sf::Vector2i m_position;
-}Move;
-
+//The purpose of this struct is to be a very compact board representation
 //=================== CompactBoard Struct ================================
 typedef struct CompactBoard
 {
-    unsigned int* m_compact_board;    
+    unsigned int* m_compact_board;
     unsigned short m_black_prisoners;
     unsigned short m_white_prisoners;
-    unsigned char  m_size;    
+    unsigned char  m_info;
 
     //============================== The Big Three =======================
-    CompactBoard()
+    CompactBoard(unsigned int board_size)
     {
         /**This representation supports up to 19x19 boardsize. In case of changing this specification, MAX_BOARD should be changed.*/
         /** For 19x19 boards total size of CompactBoard struct:
@@ -78,48 +65,73 @@ typedef struct CompactBoard
         - 2 bytes m_white prisoners
         = 29 bytes
         */
-        unsigned int one_board_bytes = ceil( (double)(MAX_BOARD*MAX_BOARD)/(sizeof(unsigned int) * SIZE_BYTE) );
+        m_info = 0;
+        SetBoardSize(board_size);
 
-        m_size = 2*one_board_bytes;
-
-        m_compact_board =  new unsigned int[m_size]; //( [0-11] -> White space [12-23]->Black Space )
+        m_compact_board =  new unsigned int[GetSizeBytesAllocatedToBoard()]; //( [0-11] -> White space [12-23]->Black Space )
 
         Clear();
     }
+
     //================================================================================
     CompactBoard(const CompactBoard& compact_copy)
     {
-        m_size = compact_copy.m_size;
+        m_info = compact_copy.m_info;
 
-        m_compact_board =  new unsigned int[m_size]; //( [0-11] -> White space [12-23]->Black Space )
+        m_compact_board =  new unsigned int[GetSizeBytesAllocatedToBoard()]; //( [0-11] -> White space [12-23]->Black Space )
 
         //copy prisoners
         m_black_prisoners = compact_copy.m_black_prisoners;
         m_white_prisoners = compact_copy.m_white_prisoners;
 
-
-        for(unsigned int i=0; i< m_size; ++i)
+        for(unsigned int i=0; i< GetSizeBytesAllocatedToBoard(); ++i)
         {
             m_compact_board[i] = compact_copy.m_compact_board[i];
         }
-
     }
+
+    //================================================================================
+    //It returns the number of bytes allocated to the board (m_compact_board)
+    unsigned int GetSizeBytesAllocatedToBoard()
+    {
+        //For now this value will be the MAX_BOARD, but itshould be GetBoardSize();
+        unsigned int one_board_bytes = ceil( (double)(MAX_BOARD*MAX_BOARD)/(sizeof(unsigned int) * SIZE_BYTE) );
+
+        return 2*one_board_bytes;
+    }
+
+    //================================================================================
+    void SetBoardSize(unsigned int board_size)
+    {
+        /** The board_size stored is equivalent to MAX_BOARD - board_size, because it was made
+        to fit 4 bits (maping 16 positions). In this fashion the maximum size supported is MAX_BOARD
+        and the MINIMUM is MIN_BOARD*/
+        assert ( ( board_size >= MIN_BOARD) && (board_size <= MAX_BOARD) );
+        m_info  = (MAX_BOARD - board_size) << 4;
+    }
+
+    //================================================================================
+    unsigned char GetBoardSize()
+    {
+        return (unsigned char) MAX_BOARD - (m_info >> 4);
+    }
+
     //================================================================================
     CompactBoard& operator=(const CompactBoard& compact_copy)
     {
-        m_size = compact_copy.m_size;
+        m_info = compact_copy.m_info;
 
         //delete previous data
         delete[] m_compact_board;
 
-        m_compact_board =  new unsigned int[m_size]; //( [0-11] -> White space [12-23]->Black Space )
+        m_compact_board =  new unsigned int[GetSizeBytesAllocatedToBoard()]; //( [0-11] -> White space [12-23]->Black Space )
 
         //copy prisoners
         m_black_prisoners = compact_copy.m_black_prisoners;
         m_white_prisoners = compact_copy.m_white_prisoners;
 
 
-        for(unsigned int i=0; i< m_size; ++i)
+        for(unsigned int i=0; i< GetSizeBytesAllocatedToBoard(); ++i)
         {
             m_compact_board[i] = compact_copy.m_compact_board[i];
         }
@@ -132,15 +144,15 @@ typedef struct CompactBoard
     {
         m_black_prisoners = 0;
         m_white_prisoners = 0;
-        for(unsigned int i = 0; i< m_size; ++i)
+        for(unsigned int i = 0; i< GetSizeBytesAllocatedToBoard(); ++i)
         {
             m_compact_board[i] = 0;
         }
     }
 
-    int HalfSize()
+    unsigned int HalfSize()
     {
-        return m_size/2;
+        return GetSizeBytesAllocatedToBoard()/2;
     }
 
     ~CompactBoard()
@@ -158,7 +170,7 @@ typedef struct CompactBoard
         }
         unsigned int total = 0;
         unsigned int l_xor;
-        for(unsigned int i = 0; i < m_size; ++i)
+        for(unsigned int i = 0; i < GetSizeBytesAllocatedToBoard(); ++i)
         {
             l_xor= m_compact_board[i] ^ p_compact_board->m_compact_board[i];
 
@@ -179,7 +191,7 @@ typedef struct CompactBoard
     {
         unsigned short total = 0;
         unsigned int l_xor;
-        for(unsigned int i = 0; i < m_size; ++i)
+        for(unsigned int i = 0; i < GetSizeBytesAllocatedToBoard(); ++i)
         {
             l_xor= m_compact_board[i] ^ 0;
 
@@ -195,10 +207,10 @@ typedef struct CompactBoard
     }
 
     //================================================================================
-    std::vector<std::pair<CompactBoard*, CBFlag> > GetAllVariations()
+    std::vector<CompactBoard* > GetAllVariations()
     {
 
-        std::vector<std::pair<CompactBoard*, CBFlag> > all_variations;
+        std::vector<CompactBoard*> all_variations;
 
         CompactBoard* cb = new CompactBoard(*this);
         CompactBoard* cb_inv;
@@ -214,21 +226,48 @@ typedef struct CompactBoard
             }
 
             //Just the original rotated (0, 90, 180 or 270 degrees)
-            all_variations.push_back(std::make_pair(cb, (CBFlag)i ));
+            cb->SetInfo((CBFlag)i);
+            all_variations.push_back(cb);
 
             //Get its mirrored variation
             cb_mirr = cb->GetMirroredVariation();
-            all_variations.push_back(std::make_pair(cb_mirr, (CBFlag) ( i | MIRRORED) ) );
+            cb_mirr->SetInfo((CBFlag) ( i | MIRRORED));
+            all_variations.push_back(cb_mirr);
 
             //Get its inversed version
             cb_inv = cb->GetInversedVariation();
-            all_variations.push_back(std::make_pair(cb_inv, (CBFlag) (i | INVERSED ) ) );
+            cb_inv->SetInfo((CBFlag) (i | INVERSED ));
+            all_variations.push_back(cb_inv );
 
             cb_inv_mirr = cb_inv->GetMirroredVariation();
-            all_variations.push_back(std::make_pair(cb_inv_mirr, (CBFlag) (i | INVERSED | MIRRORED) ) );
+            cb_inv_mirr->SetInfo((CBFlag) (i | INVERSED | MIRRORED) );
+            all_variations.push_back(cb_inv_mirr );
         }
 
         return all_variations;
+    }
+
+
+    unsigned char GetRotation()
+    {
+        return m_info & (unsigned char)3;
+    }
+
+    bool IsMirrored()
+    {
+        return m_info & MIRRORED;
+    }
+
+    bool IsInversed()
+    {
+        return m_info & INVERSED;
+    }
+
+    void SetInfo(CBFlag flag)
+    {
+        //It should preserve the board size and set the flags passed in flag
+        char mask = 15 << 4;//11110000
+        m_info = (m_info & mask) | flag;
     }
 
     //================================================================================
@@ -243,7 +282,7 @@ private:
         unsigned int byte_pos = start + ( position/(sizeof(unsigned int) * SIZE_BYTE) );
         unsigned int offset = position % (sizeof(unsigned int) * SIZE_BYTE);
 
-        assert(byte_pos < m_size);
+        assert(byte_pos < GetSizeBytesAllocatedToBoard());
         return ( (m_compact_board[byte_pos] & (unsigned int) 1 << offset)  > 0 );
     }
 
@@ -256,13 +295,7 @@ private:
         unsigned int byte_pos = start + ( position/(sizeof(unsigned int) * SIZE_BYTE) );
         unsigned int offset = position % (sizeof(unsigned int) * SIZE_BYTE);
 
-        if(byte_pos > m_size)
-        {
-            std::cout << "r: "<< row << " c: "<<column << " -- "<< stone  <<std::endl;
-            std::cout << "p: "<<position << " s: "<<start << " bp: "<<byte_pos << std::endl;
-            std::cout << byte_pos << " *** "<< (unsigned int) m_size <<std::endl;
-            assert(byte_pos < m_size);
-        }
+        assert(byte_pos < GetSizeBytesAllocatedToBoard());
 
         m_compact_board[byte_pos] |= ( (unsigned int) 1 << offset );
     }
@@ -272,12 +305,12 @@ private:
     /*Rotates the CompactBoard clockwise and returns a new (rotated) CompactBoard*/
     CompactBoard* GetRotatedClockwiseVariation()
     {
-        CompactBoard* cb_rotated = new CompactBoard();
+        CompactBoard* cb_rotated = new CompactBoard(GetBoardSize());
 
         /**Copying properties*/
         cb_rotated->m_black_prisoners = m_black_prisoners;
         cb_rotated->m_white_prisoners = m_white_prisoners;
-        cb_rotated->m_size = m_size;
+        cb_rotated->m_info = m_info;
 
         //Rotating the board
         for(int i = 0; i < MAX_BOARD; ++i)
@@ -311,7 +344,6 @@ private:
                 {
                     std::cout << i << " ** " << j << " B" << std::endl;
                 }
-
                 else if(IsSet(i,j,WHITE))
                 {
                     std::cout << i << " ** " << j << " W" << std::endl;
@@ -325,12 +357,12 @@ private:
     /**Returns its inversed variation*/
     CompactBoard* GetInversedVariation()
     {
-        CompactBoard* cb_inversed= new CompactBoard();
+        CompactBoard* cb_inversed= new CompactBoard(GetBoardSize());
 
         /**Copying properties*/
         cb_inversed->m_black_prisoners = m_white_prisoners;
         cb_inversed->m_white_prisoners = m_black_prisoners;
-        cb_inversed->m_size = m_size;
+        cb_inversed->m_info = m_info;
 
         //Rotating the board
         for(int i = 0; i < MAX_BOARD; ++i)
@@ -345,25 +377,22 @@ private:
                 {
                     cb_inversed->SetPosition(i,j,BLACK);
                 }
-
             }
         }
 
         return cb_inversed;
-
     }
     //================================================================================
     /**Returns its mirrored variation*/
     CompactBoard* GetMirroredVariation()
     {
-        CompactBoard* cb_mirrored= new CompactBoard();
+        CompactBoard* cb_mirrored= new CompactBoard(GetBoardSize());
 
         /**Copying properties*/
         cb_mirrored->m_black_prisoners = m_white_prisoners;
         cb_mirrored->m_white_prisoners = m_black_prisoners;
-        cb_mirrored->m_size = m_size;
+        cb_mirrored->m_info = m_info;
 
-        //@TODO: THIS WILL NOR WORK FOR BOARD_SIZE != 19
         //Rotating the board
         for(int i = 0; i < MAX_BOARD; ++i)
         {
@@ -371,11 +400,11 @@ private:
             {
                 if(IsSet(i,j,BLACK))
                 {
-                    cb_mirrored->SetPosition((MAX_BOARD-1)-i,j,BLACK);
+                    cb_mirrored->SetPosition((GetBoardSize()-1)-i,j,BLACK);
                 }
                 else if(IsSet(i,j,WHITE))
                 {
-                    cb_mirrored->SetPosition((MAX_BOARD-1)-i,j,WHITE);
+                    cb_mirrored->SetPosition((GetBoardSize()-1)-i,j,WHITE);
                 }
 
             }
@@ -588,6 +617,11 @@ public:
     inline unsigned short GetBlackPrisoners() const
     {
         return m_black_prisoners;
+    }
+
+    inline unsigned int GetBoardSize() const
+    {
+        return m_intersections.size();
     }
 
     bool RemoveStone(const sf::Vector2i& r_mapPosition);

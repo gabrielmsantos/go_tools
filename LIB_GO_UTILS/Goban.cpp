@@ -6,9 +6,10 @@
 //================================================================================
 Goban::Goban(int board_size):
     m_intersections(board_size),
-    m_black_prisoners(0),    
+    m_black_prisoners(0),
     m_white_prisoners(0)
 {
+    assert ( ( board_size >= MIN_BOARD) && (board_size <= MAX_BOARD) );
     for(unsigned int i = 0; i < m_intersections.size(); ++i)
     {
         m_intersections[i] = std::vector<GobanIntersection>( m_intersections.size());
@@ -210,10 +211,11 @@ CompactBoard* Goban::GetCompactBoard() const
     unsigned int start;     // indicates if it has to be inserted in white or black space
     int stone;              // the integer representation of the stone.
 
-    CompactBoard* l_compact_board = new CompactBoard();
+    CompactBoard* l_compact_board = new CompactBoard(GetBoardSize());
 
     l_compact_board->m_black_prisoners = m_black_prisoners;
-    l_compact_board->m_white_prisoners = m_white_prisoners;    
+    l_compact_board->m_white_prisoners = m_white_prisoners;
+    l_compact_board->m_info = 0;
 
     //Compacting the board representation
     for(unsigned int i = 0; i< m_intersections.size(); ++i)

@@ -33,7 +33,6 @@ short GetMirrorForMove(short move)
     return ((new_row* MAX_BOARD) + new_column ) * move/abs(move);
 }
 
-
 //=============================================================================================
 // return the filenames of all files that have the specified extension
 // in the specified directory and all subdirectories
@@ -145,6 +144,7 @@ void GoDatabase::DisposeData()
 
     number_of_stones_index::iterator it0;
 
+    std::cout <<  "Disposing Data at GoDatabase" << std::endl;
     int i = 0;
     for(it0 = ret.first; it0 != ret.second; ++it0)
     {
@@ -153,7 +153,7 @@ void GoDatabase::DisposeData()
         l_entry.m_info_tree_ptr = NULL;
         ++i;
     }
-    std::cout <<  "deleted " << i << " entries" << std::endl;
+    std::cout <<  "Deleted " << i << " entries" << std::endl;
 
     /** Clearing container */
     m_game_index_container.clear();
@@ -179,7 +179,7 @@ std::vector< DB_MatchState> GoDatabase::SearchFullBoardState(CompactBoard* cb_st
     number_of_stones_index::iterator it0;
 
     /** Getting all variations to search for.(It will be deleted in the end of the search)*/
-    std::vector<std::pair<CompactBoard*, CBFlag> > variations_to_search = cb_state->GetAllVariations();
+    std::vector<CompactBoard* > variations_to_search = cb_state->GetAllVariations();
 
     DB_MatchState match_state;
     CompactBoard* cb_to_compare;
@@ -196,16 +196,15 @@ std::vector< DB_MatchState> GoDatabase::SearchFullBoardState(CompactBoard* cb_st
         //Comparing each variation
         for(unsigned int i = 0; i < variations_to_search.size(); ++i)
         {
-            std::pair<CompactBoard*, CBFlag>& l_pair = variations_to_search[i];
-            cb_to_compare = l_pair.first;
+            cb_to_compare = variations_to_search[i];
 
             if(l_entry_cb->XOR(cb_to_compare) == 0 )
             {
                 match_state.m_tree = l_entry.m_info_tree_ptr;
                 match_state.m_node = l_entry.m_game_node_ptr;
-                match_state.m_inversed = IsInversed(l_pair.second);
-                match_state.m_rotations = GetRotation(l_pair.second);
-                match_state.m_mirrored = IsMirrored(l_pair.second);
+                match_state.m_inversed = cb_to_compare->IsInversed();
+                match_state.m_rotations = cb_to_compare->GetRotation();
+                match_state.m_mirrored = cb_to_compare->IsMirrored();
 
                 result_states.push_back(match_state);
             }
@@ -215,7 +214,7 @@ std::vector< DB_MatchState> GoDatabase::SearchFullBoardState(CompactBoard* cb_st
     //Deleting variations
     for(unsigned int i = 0; i < variations_to_search.size(); ++i)
     {
-        delete variations_to_search[i].first;
+        delete variations_to_search[i];
     }
 
     return result_states;

@@ -9,9 +9,10 @@ GoGameNode::~GoGameNode()
     /** Deleting Sub-trees */
     while(!l_queue_container.empty())
     {
-        const node_entry& l_node = l_queue_container.front();
+        node_entry& l_node = const_cast<node_entry&>(l_queue_container.front());
         /** It will be popped later (Because of RemoveChildFromContainer)*/
         delete l_node.m_node_ptr;
+        l_node.m_node_ptr = 0;
 
         l_queue_container = m_children_container.get<0>();
     }
@@ -19,7 +20,6 @@ GoGameNode::~GoGameNode()
     //Delete compact_board from memory
     delete m_compact_board;
     m_compact_board = 0;
-
 
     //Remove my entry from my parent
     if(m_parent)
@@ -45,6 +45,10 @@ void GoGameNode::RemoveChildFromContainer(short move)
     if( it != l_hash_container.end() )
     {
         l_hash_container.erase(it);
+
+    }else
+    {
+        std::cout << "COULD NOT FIND MOVE: " << move << " IN CHILDREN OF: "<< m_move << std::endl;
     }
 
 }

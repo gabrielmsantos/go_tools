@@ -23,7 +23,6 @@ void GoInfluenceMap::Start()
     m_go_database.InsertGamesFrom("/home/gabriel/Downloads/",false);
 
     m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
-    std::cout << "ADV: "<< m_advisor_map.size() << std::endl;
 
     //Game was initialized before
     if(m_gameState != GoInfluenceMap::UNINITIALIZED)
@@ -130,7 +129,7 @@ void GoInfluenceMap::CloseGame(const sf::Event& rEvent)
     }
 }
 
-GoDatabase GoInfluenceMap::m_go_database;
+
 boost::shared_ptr<GoReferee> GoInfluenceMap::m_go_referee_ptr = boost::shared_ptr<GoReferee>(new GoReferee());
 GoGame GoInfluenceMap::m_gogame = GoGame(BOARD_SIZE, m_go_referee_ptr);
 GobanGUI GoInfluenceMap::m_gobanGUI = GobanGUI(BOARD_SIZE);
@@ -138,3 +137,4 @@ I_GobanStatistics* GoInfluenceMap::m_goban_statistics = new BasicGobanStatistics
 GoInfluenceMap::GameState GoInfluenceMap::m_gameState = GoInfluenceMap::UNINITIALIZED;
 sf::RenderWindow GoInfluenceMap::m_mainWindow;
 std::vector<short> GoInfluenceMap::m_advisor_map;
+GoDatabase GoInfluenceMap::m_go_database;
