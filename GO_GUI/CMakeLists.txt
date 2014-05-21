@@ -53,10 +53,14 @@ if(UNIX)
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.so")
 
     #Go Database lib
-    set(GO_DATABASE "/home/gabriel/coding/GO_TOOLS/LIB_GO_MEMORY-build/libgo_memory.so")
+    set(GO_DATABASE "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_MEMORY/libgo_memory.so")
 
 elseif(WIN32)
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.dll")
+
+    #Go Database lib
+    set(GO_DATABASE "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_MEMORY/libgo_memory.dll")
+
     set(SFML_ROOT "C:/Program Files (x86)/SFML/")
     set(SFML_EXT  "C:/Users/gabriel.santos/Downloads/SFML-master/SFML-master")
     set(BOOST_ROOT "C:/Users/gabriel.santos/Downloads/boost_1_55_0/boost_1_55_0")

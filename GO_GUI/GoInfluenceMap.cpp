@@ -20,7 +20,7 @@ void GoInfluenceMap::Start()
     m_gogame.AddInfluenceAnalysis(m_goban_influence);
     m_gogame.RegisterObserver(m_goban_influence);
 
-    m_go_database.InsertGamesFrom("/home/gabriel/Downloads/",false);
+    m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
 
     m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
 
@@ -42,6 +42,8 @@ void GoInfluenceMap::Start()
 
     //Close the window
     m_mainWindow.close();
+
+    delete m_goban_influence;
 }
 
 bool GoInfluenceMap::IsExiting()

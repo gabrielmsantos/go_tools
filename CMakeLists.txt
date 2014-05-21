@@ -9,6 +9,7 @@ SET(ROOT_PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 SET(ROOT_PROJECT_BINARY_DIR ${PROJECT_BINARY_DIR})
 
 add_subdirectory(LIB_GO_UTILS)
+add_subdirectory(LIB_GO_MEMORY)
 add_subdirectory(GO_GUI)
 
 

@@ -23,14 +23,14 @@ elseif(WIN32)
 endif()
 
 #include_directories("${PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
-include_directories("/home/gabriel/coding/GO_TOOLS/LIB_GO_UTILS/")
+#include_directories("/home/gabriel/coding/GO_TOOLS/LIB_GO_UTILS/")
+include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 
 include_directories(${PROJECT_BINARY_DIR})
 
 if(UNIX)
     #Go Utils lib
-    #set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.so")
-    set(Go_UTILS_library "/home/gabriel/coding/GO_TOOLS-build/LIB_GO_UTILS/libgo_utils.so")
+    set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.so")
 
 elseif(WIN32)
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.dll")

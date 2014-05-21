@@ -18,6 +18,7 @@ void SGFParser::ParseGame(std::ifstream& in_file, GoGame* l_go_game)
     //Loading file into buffer
     char l_buffer[length];
     in_file.read(l_buffer, length);
+    std::string last_property;
 
     std::stack<GoGameNode*> l_node_check_points;
 
@@ -90,6 +91,16 @@ void SGFParser::ParseGame(std::ifstream& in_file, GoGame* l_go_game)
                 //Finished reading value
                 reading_value = false;
 
+                //If it is empty continue with the last property (AB AW cases)
+                if(l_property.empty())
+                {
+                    l_property = last_property;
+
+                }else //Backup the last property used.
+                {
+                    last_property = l_property;
+                }
+
                 //Process property and value
                 Process(l_property, l_value, l_go_game);
 
@@ -118,7 +129,8 @@ void SGFParser::Process(std::string& property, std::string& value, GoGame* l_go_
     char move_row;
     char move_column;
 
-    if(property == "B")//Black Plays
+    assert(!property.empty());
+    if((property == "B")||(property == "AB"))//Black Plays
     {
         move_column = value[0];
         move_row = value[1];
@@ -128,7 +140,7 @@ void SGFParser::Process(std::string& property, std::string& value, GoGame* l_go_
         l_go_game->PlayMove(column,row, BLACK);
 
     }
-    else if (property == "W")//White Plays
+    else if ((property == "W")||(property == "AW"))//White Plays
     {
 
         move_column = value[0];

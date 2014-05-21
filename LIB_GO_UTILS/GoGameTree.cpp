@@ -4,6 +4,12 @@
 //===================================================================================
 GoGameNode::~GoGameNode()
 {    
+    //Remove my entry from my parent
+    if(m_parent)
+    {
+        m_parent->RemoveChildFromContainer(m_move);
+    }
+
     random_access_index& l_queue_container = m_children_container.get<0>();
 
     /** Deleting Sub-trees */
@@ -12,7 +18,7 @@ GoGameNode::~GoGameNode()
         node_entry& l_node = const_cast<node_entry&>(l_queue_container.front());
         /** It will be popped later (Because of RemoveChildFromContainer)*/
         delete l_node.m_node_ptr;
-        l_node.m_node_ptr = 0;
+        //l_node.m_node_ptr = 0;
 
         l_queue_container = m_children_container.get<0>();
     }
@@ -20,13 +26,6 @@ GoGameNode::~GoGameNode()
     //Delete compact_board from memory
     delete m_compact_board;
     m_compact_board = 0;
-
-    //Remove my entry from my parent
-    if(m_parent)
-    {
-        m_parent->RemoveChildFromContainer(m_move);
-    }
-
 }
 //===================================================================================
 bool GoGameNode::HasChildren() const

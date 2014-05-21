@@ -51,7 +51,7 @@ void GetAllSgfFrom(const fs::path& root, const std::string& ext, std::vector<fs:
             {
                 if (fs::is_regular_file(*it) and it->path().extension() == ext)
                 {
-                    ret.push_back(it->path().filename());
+                    ret.push_back(it->path().string());
                 }
                 ++it;
             }
@@ -63,7 +63,7 @@ void GetAllSgfFrom(const fs::path& root, const std::string& ext, std::vector<fs:
             {
                 if (fs::is_regular_file(*it) and it->path().extension() == ext)
                 {
-                    ret.push_back(it->path().filename());
+                    ret.push_back(it->path().string());
                 }
                 ++it;
             }
@@ -96,17 +96,16 @@ void GoDatabase::InsertGamesFrom(std::string directory, bool recursive)
 
     for(; it != sgf_collection.end(); ++it)
     {
-        std::string filename(l_path.c_str());
-        filename+=(*it).c_str();
-        std::cout <<  filename << std::endl;
-        in_file.open(filename);
+        std::cout <<  (*it).string() << std::endl;
+        in_file.open((*it).string());
 
         //TODO: SOLVE THE PROBLEM of BOARD SIZE
         GoGame* l_go_game = new GoGame(19, l_referee);
         m_parser.ParseGame(in_file, l_go_game);
 
         GoGameTree* l_tree_ptr = new GoGameTree(l_go_game->GetGameTree());
-        GoGameInfo* l_game_info_ptr =  new GoGameInfo(l_go_game->GetGameInfo());
+        //GoGameInfo* l_game_info_ptr =  new GoGameInfo(l_go_game->GetGameInfo());
+        GoGameInfo* l_game_info_ptr =  0;
 
         InfoTree* l_info_tree_ptr = new InfoTree(l_game_info_ptr, l_tree_ptr);
 
