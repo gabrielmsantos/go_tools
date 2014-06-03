@@ -32,19 +32,6 @@ enum CBFlag
     INVERSED = 1 << 3
 };
 
-//=================== Move Struct ================================
-//typedef struct Move
-//{
-//    Move(StoneState s,const sf::Vector2i& pos)
-//        :m_stone(s),
-//          m_position(pos)
-//    {
-//    }
-
-//    StoneState  m_stone;
-//    sf::Vector2i m_position;
-//}Move;
-
 //The purpose of this struct is to be a very compact board representation
 //=================== CompactBoard Struct ================================
 typedef struct CompactBoard
@@ -414,10 +401,6 @@ private:
     }
 }CompactBoard;
 
-//========================================================================
-
-class Dragon;
-
 //=================== Intersection Class ================================
 class GobanIntersection
 {
@@ -425,6 +408,8 @@ public:
     GobanIntersection() :
         m_stone(EMPTY)
     {
+        m_dragon_parent = this;
+        m_dragon_size = 0;
     }
 
     StoneState GetStone() const
@@ -462,6 +447,102 @@ public:
 
     friend class Goban;
 
+    /*Add a liberty to the root intersection*/
+    void DragonAddLiberty(int x, int y)
+    {
+
+        GobanIntersection* root = GetRoot();
+        root->m_dragon_liberties.insert(std::make_pair(x,y));
+    }
+
+    unsigned short DragonLibertiesCount()
+    {
+        return m_dragon_liberties.size();
+    }
+
+    void DragonRemoveLiberty(int x, int y)
+    {
+        GobanIntersection* root = GetRoot();
+        root->m_dragon_liberties.erase(std::make_pair(x,y));
+    }
+
+    void DragonMergeLiberties(std::unordered_set< std::pair<int, int>, boost::hash< std::pair<int, int> > >& liberties)
+    {
+        std::unordered_set< std::pair<int, int>, boost::hash< std::pair<int, int> > >::const_iterator it;
+        std::pair<int, int> l_pair;
+        for(it = liberties.begin(); it!= liberties.end();++it)
+        {
+            l_pair = (*it);
+            m_dragon_liberties.insert(l_pair);
+        }
+    }
+
+    void DragonAddIntersection(GobanIntersection* intersection)
+    {
+
+        GobanIntersection* root_larger = GetRoot();
+        GobanIntersection* root_smaller = intersection->GetRoot();
+
+        if(root_larger == root_smaller)
+            return;
+
+        root_smaller->DragonRemoveLiberty(GetX(), GetY());
+        //Remove the liberty regarding to intersection position
+        root_larger->DragonRemoveLiberty(intersection->GetX(), intersection->GetY());
+
+        //Add liberties from the smaller Dragon
+        root_larger->DragonMergeLiberties(root_smaller->m_dragon_liberties);
+
+        //Larger Dragon swallows small dragon
+        root_smaller->SetParent(root_larger);
+
+        //Updating size
+        root_larger->m_dragon_size+=root_smaller->m_dragon_size;
+
+    }
+
+    void SetParent(GobanIntersection* new_parent)
+    {
+        m_dragon_parent->m_dragon_children.erase(this);
+        m_dragon_parent = new_parent;
+        m_dragon_parent->m_dragon_children.insert(this);
+    }
+
+    unsigned short GetSize()
+    {
+        return GetRoot()->m_dragon_size;
+    }
+
+    void PrintLiberties() const
+    {
+        std::unordered_set< std::pair<int, int>, boost::hash< std::pair<int, int> > >::const_iterator it;
+        const std::pair<int, int>* l_pair;
+        for(it = m_dragon_liberties.begin(); it!= m_dragon_liberties.end();++it)
+        {
+            l_pair = &(*it);
+            std::cout << l_pair->first << "-"<< l_pair->second << "  ";
+        }
+        std::cout << std::endl;
+    }
+
+    /** Recursively get the root*/
+    GobanIntersection* GetRoot()
+    {
+        if(m_dragon_parent==this)
+        {
+            return m_dragon_parent;
+        }
+
+        GobanIntersection* root = m_dragon_parent->GetRoot();
+
+        //PATH COMPRESSION
+        SetParent(root);
+
+        return root;
+    }
+
+
+
 private:
 
     //Which Stone currently is on the intersection
@@ -472,7 +553,11 @@ private:
 
     void Clear()
     {
-        m_stone =EMPTY;
+        m_stone = EMPTY;
+        m_dragon_parent = this;
+        m_dragon_size = 0;
+        m_dragon_children.clear();
+        m_dragon_liberties.clear();
     }
 
     inline void PutStone(StoneState stone)
@@ -480,14 +565,23 @@ private:
         m_stone = stone;
     }
 
+    //Regarding to the dragon
+    std::unordered_set< std::pair<int, int>, boost::hash< std::pair<int, int> > > m_dragon_liberties;
+    std::unordered_set<GobanIntersection*> m_dragon_children;
+    GobanIntersection* m_dragon_parent;
+    unsigned short m_dragon_size;
+
 };
 //=================== Dragon Class ================================
-class Dragon
+/*class Dragon
 {
 public:
 
-    Dragon()
+    Dragon(GobanIntersection* intersection)
     {
+        m_intersection = intersection;
+        m_root = this;
+        m_size = 0;
     }
 
     bool IsAdjacentTo(GobanIntersection* intersection) const
@@ -544,12 +638,27 @@ public:
         return ( m_stones.find(p_intersection) != m_stones.end() ) ;
     }
 
+
+    //TODO PATH COMPRESSION
+    Dragon* GetMainRoot()
+    {
+        if(m_root==this)
+        {
+            return m_root;
+        }
+
+        return m_root->GetMainRoot();
+    }
+
     friend class Goban;
 
 private:
-    std::unordered_set<GobanIntersection*> m_stones;
+    Dragon* m_root;
+    GobanIntersection* m_intersection;
+    std::unordered_set<Dragon*> m_stones;
     std::unordered_set< std::pair<int, int>, boost::hash< std::pair<int, int> > > m_liberties;
-};
+    unsigned short m_size;
+};*/
 
 //=================== Influence Goban ====================================
 class Goban: public I_GobanSubject
@@ -583,7 +692,7 @@ public:
         return std::min(a,b);
     }
 
-    Dragon* GetDragon(int x, int y);
+    GobanIntersection* GetDragon(int x, int y);
 
     inline const std::vector<std::vector<GobanIntersection> >& GetGoban() const
     {
@@ -639,16 +748,18 @@ private:
 
     std::vector<std::vector<GobanIntersection> > m_intersections;
 
+    //std::vector<std::vector<Dragon*> > m_dragons;
+
     unsigned short m_black_prisoners;
     unsigned short m_white_prisoners;
 
-    void MakeDragon(GobanIntersection *p_intersection, Dragon* p_dragon);
+    //void MakeDragon(GobanIntersection *p_intersection, Dragon* p_dragon);
 
     void CheckDragons(GobanIntersection* intersection);
 
     StoneState Opponent(StoneState stone) const;
 
-    unsigned short RemoveDragon(Dragon* l_dragon);
+    unsigned short RemoveDragon(GobanIntersection *l_dragon);
 };
 
 #endif // GOBAN_H

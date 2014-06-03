@@ -20,10 +20,13 @@ void GoInfluenceMap::Start()
     m_gogame.AddInfluenceAnalysis(m_goban_influence);
     m_gogame.RegisterObserver(m_goban_influence);
 
-    m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
+//    m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
+        m_go_database.InsertGamesFrom("/home/gabriel/DBGames",true);
+
 
     m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
 
+    std::cout <<m_go_database.GetNumberOfNodes() << " nodes inserted"<<std::endl;
     //Game was initialized before
     if(m_gameState != GoInfluenceMap::UNINITIALIZED)
         return;

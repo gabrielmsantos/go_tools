@@ -20,7 +20,6 @@ short GetClockwiseRotationForMove(short move)
 
     return ((new_row* MAX_BOARD) + new_column ) * move/abs(move);
 }
-
 //=============================================================================================
 short GetMirrorForMove(short move)
 {
@@ -282,3 +281,7 @@ std::vector<short> GoDatabase::NextMoveAdvisor(CompactBoard* cb_state)
     return result_moves;
 }
 //=============================================================================================
+unsigned int GoDatabase::GetNumberOfNodes() const
+{
+    return m_game_index_container.size();
+}

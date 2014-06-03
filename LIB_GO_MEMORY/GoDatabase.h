@@ -147,6 +147,7 @@ public:
     void InsertGamesFrom(std::string directory, bool recursive);
     std::vector< DB_MatchState> SearchFullBoardState(CompactBoard* cb_state);
     std::vector<short> NextMoveAdvisor(CompactBoard* cb_state);
+    unsigned int GetNumberOfNodes() const;
 
 private:
     void CreateIndexesFor(InfoTree* l_info_tree_ptr, GoGameNode* l_node_ptr);

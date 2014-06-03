@@ -7,10 +7,11 @@ int main()
 {
 
     GoDatabase m_database;
-    m_database.InsertGamesFrom("/home/gabriel/Downloads/",false);
+    m_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
+    std::cout <<m_database.GetNumberOfNodes() << " nodes inserted"<<std::endl;
 
     //TEST SEARCH
-    Goban goban(19);
+    /*Goban goban(19);
     CompactBoard* cb = goban.GetCompactBoard();
 
     std::vector<short> result =  m_database.NextMoveAdvisor(cb);
@@ -34,6 +35,10 @@ int main()
         std::cout << "-----" << std::endl;
     }
 
-    delete cb;
+    delete cb;*/
+    while(true)
+    {
+        sleep(1);
+    }
 }
 //=============================================================================================

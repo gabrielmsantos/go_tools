@@ -44,7 +44,7 @@ bool Goban::PutStone(const sf::Vector2i& r_mapPosition, StoneState stone)
     return false;
 }
 //================================================================================
-void Goban::CheckDragons(GobanIntersection* intersection)
+/*void Goban::CheckDragons(GobanIntersection* intersection)
 {
     int x;
     int y;
@@ -66,6 +66,11 @@ void Goban::CheckDragons(GobanIntersection* intersection)
 
             if((y < 0)||(y>=Dimension()))
                 continue;
+        }
+
+        if(m_intersections[x][y].GetStone() == EMPTY)
+        {
+            intersection->AddLiberty(x,y);
         }
 
         if(m_intersections[x][y].GetStone() == Opponent(intersection->GetStone()))
@@ -94,6 +99,75 @@ void Goban::CheckDragons(GobanIntersection* intersection)
         }
     }
 
+}*/
+
+void Goban::CheckDragons(GobanIntersection* intersection)
+{
+    int x;
+    int y;
+
+    intersection->m_dragon_size+=1;
+
+    for(int i=0; i<4; ++i)
+    {
+        if(i%2 == 0)
+        {
+            x = intersection->GetX()-1+i;
+            y = intersection->GetY();
+
+            if((x < 0)||(x>=Dimension()))
+                continue;
+        }else
+        {
+            x = intersection->GetX();
+            y = intersection->GetY()-2+i;
+
+            if((y < 0)||(y>=Dimension()))
+                continue;
+        }
+
+        if(m_intersections[x][y].GetStone() == EMPTY)
+        {
+            intersection->DragonAddLiberty(x,y);
+
+        }else if(m_intersections[x][y].GetStone() == intersection->GetStone())//Friend Stone
+        {
+            //if it is not in the same group already
+            if(  m_intersections[x][y].GetSize() < intersection->GetSize())
+            {
+                intersection->DragonAddIntersection(&(m_intersections[x][y]));
+            }else
+            {
+                m_intersections[x][y].DragonAddIntersection(intersection);
+            }
+        }
+        else//Oponent
+        {
+            GobanIntersection* l_opponent_dragon = m_intersections[x][y].GetRoot();
+            l_opponent_dragon->DragonRemoveLiberty(intersection->GetX(), intersection->GetY());
+
+            if(l_opponent_dragon->DragonLibertiesCount() == 0)
+            {
+                StoneState stone = m_intersections[x][y].GetStone();
+
+                //It deletes the dragon inside and count prisoners
+                unsigned short prisoners = RemoveDragon(l_opponent_dragon);
+
+                if(stone  == WHITE)
+                {
+                    m_black_prisoners += prisoners;
+                }else
+                {
+                    m_white_prisoners += prisoners;
+                }
+            }
+        }
+    }
+
+    //std::cout << intersection->GetX() << " XX " << intersection->GetY() << std::endl;
+    //intersection->GetRoot()->PrintLiberties();
+    //std::cout << intersection->GetRoot()->m_dragon_liberties.size() << std::endl;
+
 }
 
 //================================================================================
@@ -102,17 +176,48 @@ StoneState Goban::Opponent(StoneState stone) const
     return (StoneState)((int)stone * (-1));
 }
 //================================================================================
-unsigned short Goban::RemoveDragon(Dragon* l_dragon)
+unsigned short Goban::RemoveDragon(GobanIntersection* l_dragon)
 {
     unsigned short dragon_size = 0;
+
+    int x;
+    int y;
     std::unordered_set<GobanIntersection*>::iterator it;
-    for(it = l_dragon->GetStones().begin(); it != l_dragon->GetStones().end();++it, ++dragon_size)
+
+    for(it = l_dragon->m_dragon_children.begin(); it != l_dragon->m_dragon_children.end(); ++it)
     {
-        RemoveStone((*it)->GetBoardPosition());
+        dragon_size+= RemoveDragon( (*it) );
     }
 
-    delete l_dragon;
-    l_dragon=0;
+    //Add Liberties to Adjacency
+
+    for(int i=0; i<4; ++i)
+    {
+        if(i%2 == 0)
+        {
+            x = l_dragon->GetX()-1+i;
+            y = l_dragon->GetY();
+
+            if((x < 0)||(x>=Dimension()))
+                continue;
+        }else
+        {
+            x = l_dragon->GetX();
+            y = l_dragon->GetY()-2+i;
+
+            if((y < 0)||(y>=Dimension()))
+                continue;
+        }
+
+        if(m_intersections[x][y].GetStone() == Opponent(l_dragon->GetStone()))
+        {
+            m_intersections[x][y].DragonAddLiberty(l_dragon->GetX(), l_dragon->GetY());
+        }
+    }
+
+    RemoveStone(l_dragon->GetBoardPosition());
+
+    dragon_size++;
 
     return dragon_size;
 }
@@ -150,16 +255,12 @@ Goban& Goban::operator=(const Goban& influence_goban_copy)
     return *this;
 }
 //================================================================================
-Dragon* Goban::GetDragon(int x, int y)
+GobanIntersection *Goban::GetDragon(int x, int y)
 {
-    Dragon* l_dragon = new Dragon();
-
-    MakeDragon(&(m_intersections[x][y]), l_dragon);
-
-    return l_dragon;
+    return m_intersections[x][y].GetRoot();
 }
 //================================================================================
-void Goban::MakeDragon( GobanIntersection* p_intersection, Dragon* p_dragon)
+/*void Goban::MakeDragon( GobanIntersection* p_intersection, Dragon* p_dragon)
 {
     p_dragon->AddStone(p_intersection);
 
@@ -201,7 +302,7 @@ void Goban::MakeDragon( GobanIntersection* p_intersection, Dragon* p_dragon)
             }
         }
     }
-}
+}*/
 //================================================================================
 CompactBoard* Goban::GetCompactBoard() const
 {

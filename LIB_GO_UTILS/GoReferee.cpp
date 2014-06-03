@@ -32,11 +32,10 @@ bool GoReferee::IsLegal(StoneState stone, const sf::Vector2i& r_mapPosition,  Go
         }
 
         //I have divided in 3 segments to be better to read and understand.
-
         /** Getting the Dragon*/
-        Dragon* l_dragon = r_goban.GetDragon(x,y);
-        l_count = l_dragon->LibertyCount();
-        delete l_dragon;
+        GobanIntersection* l_dragon = r_goban.GetDragon(x,y);
+        l_count = l_dragon->DragonLibertiesCount();
+        //delete l_dragon;
 
         /** Getting the adjacent stone*/
         adj = r_goban.GetStone(x,y);
