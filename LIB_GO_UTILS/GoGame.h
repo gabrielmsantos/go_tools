@@ -9,6 +9,7 @@
 #include <boost/shared_ptr.hpp>
 #include <unordered_set>
 
+
 class I_GobanObserver;
 
 typedef struct _go_game_info
@@ -27,7 +28,6 @@ class GoGame
 {
 public:
 
-    static CompactBoard* cb_static;
 
     explicit GoGame(int board_size, boost::shared_ptr<GoReferee> l_referee);
 
@@ -35,17 +35,19 @@ public:
 
     void PlayMove(int i, int j ,StoneState stone);
 
+    //TODO: Remove dependencies of SF
     //For handicap games
     void PlayMove(sf::Vector2i &l_map_pos ,StoneState stone);
 
     /** This method plays a move and invert the current player*/
-    void PlayMove(sf::Vector2i &l_mapPos);
+    void PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y);
 
     /** This method takes back one move and invert the current player*/
     void TakeBack();
 
-    Goban& GetMainBoard() ;
+    Goban& GetMainBoard();
 
+    //TODO: REMOVE ANALYSIS FROM HERE
     void AddInfluenceAnalysis(I_InfluenceModel* influence_model);
 
     void RegisterObserver(I_GobanObserver* observer);
@@ -56,9 +58,18 @@ public:
 
     GoGameInfo& GetGameInfo();
 
+    std::vector<short> GenerateAllLegalMoves();
+
+    /**
+    * It is important to notice that the root of the Game tree will be
+    * the cb state and the game info will be reseted.
+    */
+    void SetFromCompactBoard(CompactBoard* cb);
+
 private:
 
     Goban  m_goban;
+
     //It is not owned by GoGame
     boost::shared_ptr<GoReferee> m_goReferee_sptr;
 
@@ -68,6 +79,8 @@ private:
     StoneState m_currentPlayer;
     GoGameTree m_game_tree;
     GoGameInfo m_game_info;
+
+    short m_simple_ko_restriction;
 };
 
 #endif // GOGAME_H

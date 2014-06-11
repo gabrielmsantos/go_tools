@@ -2,35 +2,12 @@
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 
 #include "GoDatabase.h"
+#include "GoUtils.h"
 #include <boost/filesystem.hpp>
 #include <vector>
 #include <math.h>
 
 namespace fs = ::boost::filesystem;
-
-//=============================================================================================
-short GetClockwiseRotationForMove(short move)
-{
-
-    short row = abs(move)/MAX_BOARD;
-    short column = abs(move)%MAX_BOARD;
-
-    short new_column = row;
-    short new_row = MAX_BOARD - 1 - column;
-
-    return ((new_row* MAX_BOARD) + new_column ) * move/abs(move);
-}
-//=============================================================================================
-short GetMirrorForMove(short move)
-{
-    short row = abs(move)/MAX_BOARD;
-    short column = abs(move)%MAX_BOARD;
-
-    short new_column = column;
-    short new_row = (MAX_BOARD - 1) - row;
-
-    return ((new_row* MAX_BOARD) + new_column ) * move/abs(move);
-}
 
 //=============================================================================================
 // return the filenames of all files that have the specified extension
@@ -103,8 +80,8 @@ void GoDatabase::InsertGamesFrom(std::string directory, bool recursive)
         m_parser.ParseGame(in_file, l_go_game);
 
         GoGameTree* l_tree_ptr = new GoGameTree(l_go_game->GetGameTree());
-        //GoGameInfo* l_game_info_ptr =  new GoGameInfo(l_go_game->GetGameInfo());
-        GoGameInfo* l_game_info_ptr =  0;
+        GoGameInfo* l_game_info_ptr =  new GoGameInfo(l_go_game->GetGameInfo());
+        //GoGameInfo* l_game_info_ptr =  0;
 
         InfoTree* l_info_tree_ptr = new InfoTree(l_game_info_ptr, l_tree_ptr);
 
@@ -251,7 +228,7 @@ std::vector<short> GoDatabase::NextMoveAdvisor(CompactBoard* cb_state)
 
             if(match_state.m_mirrored)
             {
-                move = GetMirrorForMove(move);
+                move = GoUtils::GetMirrorForMove(move);
             }
 
             if(match_state.m_rotations != 0)
@@ -266,7 +243,7 @@ std::vector<short> GoDatabase::NextMoveAdvisor(CompactBoard* cb_state)
             //@TODO: Create Anticlockwise: Seriously, do it.
             for(unsigned int i = 0 ; i < num_anticlock_rotations; ++i)
             {
-                move = GetClockwiseRotationForMove(move);
+                move = GoUtils::GetClockwiseRotationForMove(move);
             }
 
             if(match_state.m_inversed)

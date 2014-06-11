@@ -6,26 +6,35 @@ GoReferee::GoReferee()
 }
 
 //================================================================================
-bool GoReferee::IsLegal(StoneState stone, const sf::Vector2i& r_mapPosition,  Goban& r_goban)
+bool GoReferee::IsLegal(StoneState stone, unsigned int map_x, unsigned int map_y,  Goban& r_goban, short ko_restriction)
 {
     int x;
     int y;
     StoneState adj;
     int l_count;
 
+    /**
+      Check for SimpleKo
+    */
+    short next_move = abs(GoUtils::BoardPositionToMove(map_x, map_y, stone));
+    if(next_move == ko_restriction)
+    {
+        return false;
+    }
+
     for(unsigned int i=0; i<4; ++i)
     {
         if(i%2 == 0)
         {
-            x = r_mapPosition.x-1+i;
-            y = r_mapPosition.y;
+            x = map_x-1+i;
+            y = map_y;
 
             if((x < 0)||(x>=r_goban.Dimension()))
                 continue;
         }else
         {
-            x = r_mapPosition.x;
-            y = r_mapPosition.y-2+i;
+            x = map_x;
+            y = map_y-2+i;
 
             if((y < 0)||(y>=r_goban.Dimension()))
                 continue;

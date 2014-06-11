@@ -1,4 +1,5 @@
 #include "GobanGUI.h"
+#include "GoUtils.h"
 #include "../Config.h"
 
 template <typename T>
@@ -115,8 +116,9 @@ void GobanGUI::Draw(sf::RenderTarget& r_target, Goban& r_goban, I_GobanStatistic
     {
         short move = move_sugestion[i];
 
-        short row =  abs(move)/MAX_BOARD;
-        short column = abs(move)%MAX_BOARD;
+        std::pair<short, short> l_pair = GoUtils::MoveToBoardPosition(move);
+        short row =  l_pair.first;
+        short column = l_pair.second;
 
         if(move > 0)
         {

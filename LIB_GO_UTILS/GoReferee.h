@@ -8,7 +8,7 @@ class GoReferee
 public:
     GoReferee();
 
-    bool IsLegal(StoneState stone, const sf::Vector2i& r_mapPosition, Goban &r_goban);
+    bool IsLegal(StoneState stone, unsigned int map_x, unsigned int map_y,  Goban& r_goban, short ko_restriction);
     StoneState Opponent(StoneState stone) const;
 };
 

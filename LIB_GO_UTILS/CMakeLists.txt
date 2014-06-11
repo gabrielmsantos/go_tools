@@ -27,8 +27,8 @@ FOREACH(FILE ${FILES})
         SET (InfluenceStatisticsFiles ${InfluenceStatisticsFiles} GoInfluenceStatistics/${FILE})
 ENDFOREACH (FILE)
 
-SET(HEADERS I_GobanObserver.h I_GobanSubject.h)
-SET(SOURCES Goban.cpp GoReferee.cpp  GoGame.cpp GoGameTree.cpp)
+SET(HEADERS I_GobanObserver.h I_GobanSubject.h GoUtils.h)
+SET(SOURCES Goban.cpp GoReferee.cpp  GoGame.cpp  SimpleGoGame.cpp GoGameTree.cpp)
 
 #If your processor is 64bits, set -m64, otherwise -m32.
 if(UNIX)

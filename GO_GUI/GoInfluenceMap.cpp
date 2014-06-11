@@ -20,8 +20,10 @@ void GoInfluenceMap::Start()
     m_gogame.AddInfluenceAnalysis(m_goban_influence);
     m_gogame.RegisterObserver(m_goban_influence);
 
-//    m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
-        m_go_database.InsertGamesFrom("/home/gabriel/DBGames",true);
+    //m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
+        //m_go_database.InsertGamesFrom("/home/gabriel/DBGames",true);
+        m_go_database.InsertGamesFrom("/home/gabriel/DBGames/FewGames",true);
+
 
 
     m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
@@ -102,7 +104,17 @@ void GoInfluenceMap::MapClick(const sf::Event& rEvent)
         sf::Vector2i l_mapPos;
         m_gobanGUI.MapClick(l_mousePos, l_mapPos);
 
-        m_gogame.PlayMove(l_mapPos);
+        m_gogame.PlayMove(l_mapPos.x,l_mapPos.y);
+
+        std::vector<short>::iterator it;
+        std::vector<short> legal_moves = m_gogame.GenerateAllLegalMoves();
+
+        for(it = legal_moves.begin(); it != legal_moves.end(); ++it)
+        {
+            std::cout << *it << " "<<  std::flush;
+        }
+        std::cout << std::endl;
+
 
         //Get Advisors
         m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());

@@ -10,10 +10,10 @@
 #include <boost/shared_ptr.hpp>
 #include "GoInfluenceModel/I_InfluenceModel.h"
 #include "I_GobanSubject.h"
+#include "GoUtils.h"
 
 #define SIZE_BYTE 8
-#define MAX_BOARD 19
-#define MIN_BOARD 4
+
 
 //=================== Stone State ================================
 enum StoneState{
@@ -498,6 +498,7 @@ public:
 
         //Updating size
         root_larger->m_dragon_size+=root_smaller->m_dragon_size;
+        root_smaller->m_dragon_size = root_larger->m_dragon_size;
 
     }
 
@@ -668,7 +669,8 @@ public:
 
     ~Goban();
 
-    bool PutStone(const sf::Vector2i& r_mapPosition, StoneState stone);
+    //bool PutStone(const sf::Vector2i& r_mapPosition, StoneState stone);
+    std::pair<bool,short> PutStone(unsigned int r_mapPosition_x, unsigned int r_mapPosition_y, StoneState stone);
 
     inline int Dimension() const
     {
@@ -755,7 +757,7 @@ private:
 
     //void MakeDragon(GobanIntersection *p_intersection, Dragon* p_dragon);
 
-    void CheckDragons(GobanIntersection* intersection);
+    short CheckDragons(GobanIntersection* intersection);
 
     StoneState Opponent(StoneState stone) const;
 

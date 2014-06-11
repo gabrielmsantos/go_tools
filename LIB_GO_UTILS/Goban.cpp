@@ -25,86 +25,31 @@ Goban::~Goban()
     //std::cout <<"Destructing Goban" << std::endl;
 }
 //================================================================================
-bool Goban::PutStone(const sf::Vector2i& r_mapPosition, StoneState stone)
+std::pair<bool,short> Goban::PutStone(unsigned int r_mapPosition_x, unsigned int r_mapPosition_y , StoneState stone)
 {
-    if ( ( GetStone(r_mapPosition.x, r_mapPosition.y) == EMPTY )  && ( stone != EMPTY ) )
+    short move_ko_restriction = 0;
+    if ( ( GetStone(r_mapPosition_x, r_mapPosition_y) == EMPTY )  && ( stone != EMPTY ) )
     {
-        m_intersections[r_mapPosition.x][r_mapPosition.y].PutStone(stone);
+        m_intersections[r_mapPosition_x][r_mapPosition_y].PutStone(stone);
 
         //Distribute the influence over the board
         //m_influence_model->PutInfluence(r_mapPosition, stone, *this);
-        NotifyObservers(r_mapPosition, stone);
+        NotifyObservers(sf::Vector2i(r_mapPosition_x,r_mapPosition_y), stone);
 
         //Settle the Dragons (Groups of Stones) {Remove Stones, Join Dragons, etc..} Go Rules Here
-        CheckDragons(&(m_intersections[r_mapPosition.x][r_mapPosition.y]));
+        move_ko_restriction = CheckDragons(&(m_intersections[r_mapPosition_x][r_mapPosition_y]));
 
-        return true;
+        return std::pair<bool, short>(true, move_ko_restriction);
     }
-
-    return false;
+    return std::pair<bool, short>(false, move_ko_restriction);
 }
 //================================================================================
-/*void Goban::CheckDragons(GobanIntersection* intersection)
+short Goban::CheckDragons(GobanIntersection* intersection)
 {
     int x;
     int y;
-    Dragon* l_dragon;
-
-    for(int i=0; i<4; ++i)
-    {
-        if(i%2 == 0)
-        {
-            x = intersection->GetX()-1+i;
-            y = intersection->GetY();
-
-            if((x < 0)||(x>=Dimension()))
-                continue;
-        }else
-        {
-            x = intersection->GetX();
-            y = intersection->GetY()-2+i;
-
-            if((y < 0)||(y>=Dimension()))
-                continue;
-        }
-
-        if(m_intersections[x][y].GetStone() == EMPTY)
-        {
-            intersection->AddLiberty(x,y);
-        }
-
-        if(m_intersections[x][y].GetStone() == Opponent(intersection->GetStone()))
-        {
-            l_dragon = GetDragon(x,y);
-            if(l_dragon->LibertyCount() == 0)
-            {
-
-                StoneState stone = m_intersections[x][y].GetStone();
-
-                //It deletes the dragon inside and count prisoners
-                unsigned short prisoners = RemoveDragon(l_dragon);
-
-                if(stone  == WHITE)
-                {
-                    m_black_prisoners += prisoners;
-                }else
-                {
-                    m_white_prisoners += prisoners;
-                }
-
-            }else
-            {
-                delete l_dragon;
-            }
-        }
-    }
-
-}*/
-
-void Goban::CheckDragons(GobanIntersection* intersection)
-{
-    int x;
-    int y;
+    int total_prisoners=0;
+    short move=0;
 
     intersection->m_dragon_size+=1;
 
@@ -151,7 +96,14 @@ void Goban::CheckDragons(GobanIntersection* intersection)
                 StoneState stone = m_intersections[x][y].GetStone();
 
                 //It deletes the dragon inside and count prisoners
+                if(l_opponent_dragon->m_dragon_size==1)
+                {
+                    move =  GoUtils::BoardPositionToMove(l_opponent_dragon->GetX(), l_opponent_dragon->GetY(), l_opponent_dragon->GetStone() );
+                }
+
                 unsigned short prisoners = RemoveDragon(l_opponent_dragon);
+
+                total_prisoners+=prisoners;
 
                 if(stone  == WHITE)
                 {
@@ -163,6 +115,19 @@ void Goban::CheckDragons(GobanIntersection* intersection)
             }
         }
     }
+
+    //Check Here for Simple KO Just Used For Play-out Simulations
+    //If total Prisoners == 1 and intersection.dragon_size ==1
+    if( (total_prisoners == 1) && (intersection->m_dragon_size==1) )
+    {
+        //std::cout << "simple Ko: "<< move << std::endl;
+        return move;
+    }
+    else
+    {
+        return 0;
+    }
+
 
     //std::cout << intersection->GetX() << " XX " << intersection->GetY() << std::endl;
     //intersection->GetRoot()->PrintLiberties();
@@ -260,50 +225,6 @@ GobanIntersection *Goban::GetDragon(int x, int y)
     return m_intersections[x][y].GetRoot();
 }
 //================================================================================
-/*void Goban::MakeDragon( GobanIntersection* p_intersection, Dragon* p_dragon)
-{
-    p_dragon->AddStone(p_intersection);
-
-    StoneState adj;
-    int x;
-    int y;
-
-    for(int i=0; i<4; ++i)
-    {
-        if(i%2 == 0)
-        {
-            x = p_intersection->GetX()-1+i;
-            y = p_intersection->GetY();
-
-            if((x < 0)||(x>=Dimension()))
-                continue;
-        }else
-        {
-            x = p_intersection->GetX();
-            y = p_intersection->GetY()-2+i;
-
-            if((y < 0)||(y>=Dimension()))
-                continue;
-        }
-
-        adj = GetStone(x,y);
-
-        //Add Liberty
-        if(adj == EMPTY)
-        {
-            p_dragon->AddLiberty(x,y);
-
-        }else if (adj == p_intersection->GetStone())
-        {
-            //MakeDragon Recursively
-            if(! p_dragon->HasIntersection( &(m_intersections[x][y]) ) )
-            {
-                MakeDragon(&(m_intersections[x][y]), p_dragon);
-            }
-        }
-    }
-}*/
-//================================================================================
 CompactBoard* Goban::GetCompactBoard() const
 {
     unsigned int pos;       // position of the bit
@@ -372,7 +293,7 @@ void Goban::SetFromCompactBoard(CompactBoard* p_compact_board)
         {
             x = i/Dimension();
             y = i % Dimension();
-            PutStone(sf::Vector2i(x,y), (StoneState) ((2*j) -1) );
+            PutStone(x,y, (StoneState) ((2*j) -1) );
         }
     }
 
