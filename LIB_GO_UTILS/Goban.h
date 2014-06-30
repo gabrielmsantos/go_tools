@@ -679,6 +679,7 @@ public:
 
     inline StoneState GetStone(int x, int y) const
     {
+        //TODO: Verify boundaries
         return m_intersections[x][y].GetStone();
     }
 
@@ -689,9 +690,9 @@ public:
 
     inline int GetLayer(int x, int y) const
     {
-        int a = std::min(x+1,y+1);
-        int b = std::min( abs(x - Dimension()), abs( y - Dimension()) );
-        return std::min(a,b);
+        int a = std::min( x+1, y+1);
+        int b = std::min( abs( x - Dimension()), abs( y - Dimension()) );
+        return std::min(a, b);
     }
 
     GobanIntersection* GetDragon(int x, int y);
@@ -745,23 +746,24 @@ public:
 
     void SetFromCompactBoard(CompactBoard *p_compact_board);
 
+    std::vector<std::pair<unsigned short, unsigned short> > GetAdjacencies(unsigned short move_x, unsigned short move_y) const;
+
+    std::vector<std::pair<unsigned short, unsigned short> > GetDiagonals(unsigned short move_x, unsigned short move_y) const;
 
 private:
 
     std::vector<std::vector<GobanIntersection> > m_intersections;
 
-    //std::vector<std::vector<Dragon*> > m_dragons;
-
     unsigned short m_black_prisoners;
     unsigned short m_white_prisoners;
-
-    //void MakeDragon(GobanIntersection *p_intersection, Dragon* p_dragon);
 
     short CheckDragons(GobanIntersection* intersection);
 
     StoneState Opponent(StoneState stone) const;
 
     unsigned short RemoveDragon(GobanIntersection *l_dragon);
+
+    bool IsValidCoordinates(unsigned short x, unsigned short y) const;
 };
 
 #endif // GOBAN_H

@@ -33,17 +33,23 @@ public:
 
     ~GoGame();
 
-    void PlayMove(int i, int j ,StoneState stone);
+    bool PlayMove(int i, int j ,StoneState stone);
 
     //TODO: Remove dependencies of SF
     //For handicap games
-    void PlayMove(sf::Vector2i &l_map_pos ,StoneState stone);
+    bool PlayMove(sf::Vector2i &l_map_pos ,StoneState stone);
 
     /** This method plays a move and invert the current player*/
-    void PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y);
+    bool PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y);
+
+    /** This method plays a move and invert the current player*/
+    bool PlayMove(short move);
 
     /** This method takes back one move and invert the current player*/
     void TakeBack();
+
+    /** This method takes back one move and invert the current player*/
+    void TakeBack(unsigned short number);
 
     Goban& GetMainBoard();
 
@@ -65,6 +71,12 @@ public:
     * the cb state and the game info will be reseted.
     */
     void SetFromCompactBoard(CompactBoard* cb);
+
+    void SetCurrentPlayer(StoneState to_play);
+
+    StoneState GetCurrentPlayer() const;
+
+    unsigned short GetTotalStones() const;
 
 private:
 

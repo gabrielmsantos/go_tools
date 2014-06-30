@@ -20,11 +20,27 @@ public:
     explicit SimpleGoGame(int board_size, boost::shared_ptr<GoReferee> l_referee);
 
     /** Execute a move in the m_goban according to the "stone" player*/
-    void PlayMove(int l_mapPos_x, int l_mapPos_y, StoneState stone = EMPTY);
+    bool PlayMove(int l_mapPos_x, int l_mapPos_y, StoneState stone = EMPTY);
 
-    std::vector<short> GenerateAllLegalMoves();
+    /** This method plays a move and invert the current player*/
+    bool PlayMove(short move);
+
+    void GenerateAllLegalMoves(std::vector<short>& result);
 
     void SetFromCompactBoard(CompactBoard* cb);
+
+    inline StoneState GetCurrentPlayer()
+    {
+        return m_currentPlayer;
+    }
+
+    unsigned short Dimension();
+
+    void PlayPassMove();
+
+    const Goban& GetMainBoard();
+
+    void SetCurrentPlayer(StoneState to_play);
 
 private:
 
@@ -33,6 +49,7 @@ private:
     //It is not owned by GoGame
     boost::shared_ptr<GoReferee> m_goReferee_sptr;
 
+    //Who is the turn to move
     StoneState m_currentPlayer;
 
     /*variable to early check simple ko*/

@@ -10,7 +10,6 @@
 #include "Config.h"
 #include "GoInfluenceStatistics/BasicGobanStatistics.h"
 #include "GoInfluenceModel/CrossInfluence.h"
-
 #include <iostream>
 
 void GoInfluenceMap::Start()
@@ -22,13 +21,12 @@ void GoInfluenceMap::Start()
 
     //m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
         //m_go_database.InsertGamesFrom("/home/gabriel/DBGames",true);
-        m_go_database.InsertGamesFrom("/home/gabriel/DBGames/FewGames",true);
-
-
+    m_go_database.InsertGamesFrom("/home/gabriel/DBGames/FewGames",true);
 
     m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
 
     std::cout <<m_go_database.GetNumberOfNodes() << " nodes inserted"<<std::endl;
+
     //Game was initialized before
     if(m_gameState != GoInfluenceMap::UNINITIALIZED)
         return;
@@ -106,18 +104,31 @@ void GoInfluenceMap::MapClick(const sf::Event& rEvent)
 
         m_gogame.PlayMove(l_mapPos.x,l_mapPos.y);
 
-        std::vector<short>::iterator it;
-        std::vector<short> legal_moves = m_gogame.GenerateAllLegalMoves();
-
-        for(it = legal_moves.begin(); it != legal_moves.end(); ++it)
+        //Automatic Player
+        m_automatic_player->StartSearchFor(m_gogame.GetMainBoard().GetCompactBoard(), m_gogame.GetCurrentPlayer());
+        std::vector<short> moves = m_automatic_player->GetBestMovesFound();
+        if(moves.size() > 0 )
         {
-            std::cout << *it << " "<<  std::flush;
+            std::pair<unsigned short, unsigned short> pos = GoUtils::MoveToBoardPosition(moves[0]);
+            m_gogame.PlayMove(pos.first,pos.second);
+        }else
+        {
+            std::cout << "PASS -- " << std::endl;
         }
-        std::cout << std::endl;
 
+//        std::vector<short>::iterator it;
+//        std::vector<short> legal_moves = m_gogame.GenerateAllLegalMoves();
+
+//        for(it = legal_moves.begin(); it != legal_moves.end(); ++it)
+//        {
+//            std::cout << *it << " "<<  std::flush;
+//        }
+//        std::cout << std::endl;
 
         //Get Advisors
         m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
+
+        //Put Engine here
 
     }else if (rEvent.type == sf::Event::MouseButtonReleased && rEvent.mouseButton.button == sf::Mouse::Right)
     {
@@ -155,3 +166,5 @@ GoInfluenceMap::GameState GoInfluenceMap::m_gameState = GoInfluenceMap::UNINITIA
 sf::RenderWindow GoInfluenceMap::m_mainWindow;
 std::vector<short> GoInfluenceMap::m_advisor_map;
 GoDatabase GoInfluenceMap::m_go_database;
+MctsPlayer* GoInfluenceMap::m_automatic_player = new MctsPlayer(BOARD_SIZE, m_go_referee_ptr);
+

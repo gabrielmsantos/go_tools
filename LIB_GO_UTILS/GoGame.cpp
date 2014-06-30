@@ -1,7 +1,7 @@
 #include "GoGame.h"
 #include "GoUtils.h"
 #include "GoInfluenceModel/CrossInfluence.h"
-
+#include "GobanUtils.h"
 //===============================================================================================
 GoGame::GoGame(int board_size, boost::shared_ptr<GoReferee> l_referee):
     m_goban(board_size),
@@ -11,27 +11,28 @@ GoGame::GoGame(int board_size, boost::shared_ptr<GoReferee> l_referee):
     m_currentPlayer = BLACK;
 }
 //===============================================================================================
-void GoGame::PlayMove(int i, int j ,StoneState stone)
+bool GoGame::PlayMove(int i, int j ,StoneState stone)
 {
     sf::Vector2i l_map_pos(i,j);
-    PlayMove(l_map_pos, stone);
+    return PlayMove(l_map_pos, stone);
 }
 //===============================================================================================
-void GoGame::PlayMove(sf::Vector2i &l_map_pos ,StoneState stone)
+bool GoGame::PlayMove(sf::Vector2i &l_map_pos ,StoneState stone)
 {
     m_currentPlayer = stone;
-    PlayMove(l_map_pos.x,l_map_pos.y);
+    return PlayMove(l_map_pos.x,l_map_pos.y);
 }
 //===============================================================================================
-void GoGame::PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y)
+bool GoGame::PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y)
 {
-    int board_size = m_goban.GetGoban().size();
+    unsigned int board_size = m_goban.GetGoban().size();
 
     CompactBoard* l_previous_state = 0;
     CompactBoard* l_next_state = 0;
     CompactBoard* l_current_state = 0;
 
     GoGameNode* l_node = 0;
+    bool success = false;
 
     if(l_mapPos_x >= 0 && l_mapPos_y >= 0 && l_mapPos_x < board_size && l_mapPos_y < board_size)
     {
@@ -57,10 +58,11 @@ void GoGame::PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y)
                     m_goban.SetFromCompactBoard(l_current_state);
                     delete l_next_state;
                     delete l_current_state;
-                    return;
+                    return success;
 
                 }else
                 {
+
                     /** The move that leads to the next state and the player who made it.
                       If the move is negative then it was made by the white player, otherwise it the black player
                     */
@@ -77,12 +79,15 @@ void GoGame::PlayMove(unsigned int l_mapPos_x, unsigned int l_mapPos_y)
                     m_currentPlayer = (StoneState) ((int) m_currentPlayer * (-1));
 
                     m_game_tree.InsertNewNode(new GoGameNode(move, l_next_state));
+
+                    success = true;
                 }
             }
 
             delete l_current_state;
         }
     }
+    return success;
 }
 //===============================================================================================
 
@@ -96,6 +101,28 @@ GoGame::~GoGame()
 {
     //std::cout <<"Destructing GoGame" << std::endl;
 }
+
+//===============================================================================================
+void GoGame::TakeBack(unsigned short number)
+{
+    m_simple_ko_restriction = 0;
+
+    GoGameNode* l_node = 0;
+    bool took = m_game_tree.TakeBack(&l_node, number);
+
+    if(took)
+    {
+        assert(l_node!= NULL);
+        m_goban.SetFromCompactBoard(l_node->GetCompactBoard());
+
+        if(l_node->GetMove() > 0)
+            m_currentPlayer = WHITE;
+        else
+            m_currentPlayer = BLACK;
+    }
+
+}
+
 //===============================================================================================
 void GoGame::TakeBack()
 {
@@ -153,7 +180,13 @@ void GoGame::SetFromCompactBoard(CompactBoard* cb)
 {
 
     m_goban.SetFromCompactBoard(cb);
+
+    //New game Tree
     m_game_tree = GoGameTree();
+
+    m_game_tree.InsertNewNode(new GoGameNode(0, m_goban.GetCompactBoard()));
+
+    //New Game Info
     m_game_info = GoGameInfo();
 }
 //===============================================================================================
@@ -181,3 +214,24 @@ std::vector<short> GoGame::GenerateAllLegalMoves()
     return result;
 }
 //=================================================================================================
+bool GoGame::PlayMove(short move)
+{
+    m_currentPlayer = GobanUtils::GetStoneState(move);
+    std::pair<unsigned short, unsigned short> l_map_pos = GoUtils::MoveToBoardPosition(move);
+    return PlayMove(l_map_pos.first,l_map_pos.second);
+}
+//=================================================================================================
+void GoGame::SetCurrentPlayer(StoneState to_play)
+{
+    m_currentPlayer = to_play;
+}
+//=================================================================================================
+StoneState GoGame::GetCurrentPlayer() const
+{
+    return m_currentPlayer;
+}
+//=================================================================================================
+unsigned short GoGame::GetTotalStones() const
+{
+    return (m_goban.CountStones(WHITE) + m_goban.CountStones(BLACK));
+}

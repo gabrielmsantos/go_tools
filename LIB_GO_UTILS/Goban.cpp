@@ -34,7 +34,9 @@ std::pair<bool,short> Goban::PutStone(unsigned int r_mapPosition_x, unsigned int
 
         //Distribute the influence over the board
         //m_influence_model->PutInfluence(r_mapPosition, stone, *this);
-        NotifyObservers(sf::Vector2i(r_mapPosition_x,r_mapPosition_y), stone);
+
+        //TODO THINK ABOUT THIS
+        //NotifyObservers(sf::Vector2i(r_mapPosition_x,r_mapPosition_y), stone);
 
         //Settle the Dragons (Groups of Stones) {Remove Stones, Join Dragons, etc..} Go Rules Here
         move_ko_restriction = CheckDragons(&(m_intersections[r_mapPosition_x][r_mapPosition_y]));
@@ -311,4 +313,87 @@ void Goban::ClearBoard()
         }
 
 }
+
+//================================================================================
+std::vector<std::pair<unsigned short, unsigned short> > Goban::GetAdjacencies(unsigned short move_x, unsigned short move_y) const
+{
+    unsigned short x;
+    unsigned short y;
+
+    std::vector<std::pair<unsigned short, unsigned short> > adjacencies;
+
+    for(unsigned int i=0; i<4; ++i)
+    {
+        if(i%2 == 0)
+        {
+            x = move_x -1+i;
+            y = move_y;
+
+            if((x < 0)||(x>=Dimension()))
+                continue;
+        }else
+        {
+            x = move_x;
+            y = move_y-2+i;
+
+            if((y < 0)||(y >= Dimension()))
+                continue;
+        }
+
+        adjacencies.push_back(std::pair<unsigned short, unsigned short>(x,y));
+    }
+
+    return adjacencies;
+}
+
+//================================================================================
+std::vector<std::pair<unsigned short, unsigned short> > Goban::GetDiagonals(unsigned short move_x, unsigned short move_y) const
+{
+    unsigned short x;
+    unsigned short y;
+
+    std::vector<std::pair<unsigned short, unsigned short> > diagonals;
+
+
+    //-------------------------------------------
+    x = move_x+1;
+    y = move_y+1;
+
+    if(IsValidCoordinates(x,y))
+        diagonals.push_back(std::pair<unsigned short, unsigned short>(x,y));
+    //-------------------------------------------
+
+    //-------------------------------------------
+    x = move_x+1;
+    y = move_y-1;
+
+    if(IsValidCoordinates(x,y))
+        diagonals.push_back(std::pair<unsigned short, unsigned short>(x,y));
+    //-------------------------------------------
+
+    //-------------------------------------------
+    x = move_x-1;
+    y = move_y+1;
+
+    if(IsValidCoordinates(x,y))
+        diagonals.push_back(std::pair<unsigned short, unsigned short>(x,y));
+    //-------------------------------------------
+
+    //-------------------------------------------
+    x = move_x-1;
+    y = move_y-1;
+
+    if(IsValidCoordinates(x,y))
+        diagonals.push_back(std::pair<unsigned short, unsigned short>(x,y));
+    //-------------------------------------------
+
+    return diagonals;
+}
+
+//================================================================================
+bool Goban::IsValidCoordinates(unsigned short x, unsigned short y) const
+{
+    return !( (x < 0) || (x>=Dimension()) || (y < 0) || (y >= Dimension()) );
+}
+
 //================================================================================

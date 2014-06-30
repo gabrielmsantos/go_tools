@@ -45,6 +45,9 @@ include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 #Go Database library
 include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MEMORY/")
 
+#Go MCTS library
+include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MCTS/")
+
 if(UNIX)
     #This sets where you have installed SFML
     set(SFML_ROOT "/home/gabriel/libraries/SFML-2.1")
@@ -55,6 +58,11 @@ if(UNIX)
     #Go Database lib
     set(GO_DATABASE "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_MEMORY/libgo_memory.so")
 
+    #Go MCTS Lib
+    set(GO_MCTS "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_MCTS/libgo_mcts.so")
+
+
+#REVIEW WIN CONFIG
 elseif(WIN32)
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.dll")
 
@@ -75,8 +83,10 @@ endif()
 
 MESSAGE("LIB GO: " ${Go_UTILS_library})
 MESSAGE("LIB GO DATABASE: " ${GO_DATABASE})
+MESSAGE("LIB GO_MCTS: " ${GO_MCTS})
 MESSAGE("INCLUDES: ${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 MESSAGE("INCLUDES: ${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MEMORY/" )
+MESSAGE("INCLUDES: ${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MCTS/" )
 
 # Define sources and executable
 set(EXECUTABLE_NAME "go_influence_map")
@@ -96,7 +106,7 @@ if(UNIX)
     find_package(SFML 2 REQUIRED system window graphics network audio)
     if(SFML_FOUND)
       include_directories(${SFML_INCLUDE_DIR} )
-      target_link_libraries(${EXECUTABLE_NAME} ${Go_UTILS_library} ${GO_DATABASE} ${SFML_LIBRARIES} GLEW)
+      target_link_libraries(${EXECUTABLE_NAME}  ${Go_UTILS_library}  ${GO_DATABASE} ${GO_MCTS} ${SFML_LIBRARIES} GLEW)
     endif()
 
 elseif(WIN32)

@@ -18,7 +18,7 @@ class GoGameNode;
 typedef struct node_entry_t
 {
     short m_move;
-//    boost::shared_ptr<GoGameNode > m_node_ptr;
+    //    boost::shared_ptr<GoGameNode > m_node_ptr;
     GoGameNode * m_node_ptr;
 
     node_entry_t(short move, GoGameNode* node):m_move(move), m_node_ptr(node){}
@@ -68,8 +68,9 @@ public:
     {
     }
 
-    GoGameNode(const GoGameNode& node_copy);
+    void ClearNode();
 
+    GoGameNode(const GoGameNode& node_copy);
 
     ~GoGameNode();
 
@@ -143,7 +144,7 @@ public:
     ~GoGameTree()
     {
         delete m_root;
-        m_root= NULL;
+        m_root = NULL;
         m_current_node = NULL;
     }
 
@@ -157,6 +158,8 @@ public:
     void InsertNewNode(GoGameNode* child);
 
     bool TakeBack(GoGameNode **node);
+
+    bool TakeBack(GoGameNode **node, unsigned short number);
 
     void BackToNode(GoGameNode *node);
 

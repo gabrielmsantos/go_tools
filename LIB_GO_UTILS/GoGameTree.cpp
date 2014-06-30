@@ -4,6 +4,11 @@
 //===================================================================================
 GoGameNode::~GoGameNode()
 {    
+    ClearNode();
+}
+
+void GoGameNode::ClearNode()
+{
     //Remove my entry from my parent
     if(m_parent)
     {
@@ -16,6 +21,7 @@ GoGameNode::~GoGameNode()
     while(!l_queue_container.empty())
     {
         node_entry& l_node = const_cast<node_entry&>(l_queue_container.front());
+
         /** It will be popped later (Because of RemoveChildFromContainer)*/
         delete l_node.m_node_ptr;
         //l_node.m_node_ptr = 0;
@@ -27,6 +33,7 @@ GoGameNode::~GoGameNode()
     delete m_compact_board;
     m_compact_board = 0;
 }
+
 //===================================================================================
 bool GoGameNode::HasChildren() const
 {
@@ -68,7 +75,11 @@ GoGameNode* GoGameNode::GetChild(short move) const
 //===================================================================================
 GoGameNode& GoGameNode::operator=(GoGameNode& node_copy)
 {
-    delete m_compact_board;
+//    delete m_compact_board;
+
+    //Delete previous data
+    ClearNode();
+
     m_compact_board = new CompactBoard(*(node_copy.m_compact_board));
     m_move = node_copy.m_move;
 
@@ -90,6 +101,7 @@ GoGameNode& GoGameNode::operator=(GoGameNode& node_copy)
 //===================================================================================
 GoGameNode::GoGameNode(const GoGameNode& node_copy)
 {
+
     m_compact_board = new CompactBoard(*(node_copy.m_compact_board));
     m_move = node_copy.m_move;
 
@@ -104,7 +116,6 @@ GoGameNode::GoGameNode(const GoGameNode& node_copy)
 
         InsertChild(l_game_node);
     }
-
 }
 //===================================================================================
 GoGameNode* GoGameNode::GetNodeInSubTree(short move, CompactBoard* l_compact_board) const
@@ -195,7 +206,23 @@ void GoGameTree::InsertNewNode(GoGameNode *child)
 
     *node = m_current_node;
     return false;
-} 
+}
+
+//===================================================================================
+bool GoGameTree::TakeBack(GoGameNode **node, unsigned short number)
+{
+    bool success = false;
+    while( (m_current_node != m_root) && (number > 0) )
+    {
+        m_current_node = m_current_node->GetParent();
+        number--;
+        success = true;
+    }
+
+    *node = m_current_node;
+
+    return success;
+}
 //===================================================================================
  void GoGameTree::BackToNode(GoGameNode* node)
 {
@@ -207,6 +234,11 @@ GoGameTree& GoGameTree::operator=(const GoGameTree& tree_copy)
     //Delete previous data
     delete m_root;
 
+    if(tree_copy.m_root == NULL)
+    {
+        m_root = nullptr;
+        return *this;
+    }
     //This shall copy the Tree
     m_root = new GoGameNode(*(tree_copy.m_root));
 
@@ -234,12 +266,6 @@ GoGameTree::GoGameTree(const GoGameTree& tree_copy)
     {
         m_current_node = m_root;
     }
-
-//    //Just Testing
-//    m_root->PrintSubTree();
-//    std::cout << " Current: " <<m_current_node->GetMove() <<std::endl;
-//    tree_copy.m_root->PrintSubTree();
-//    std::cout << " Current: " <<tree_copy.m_current_node->GetMove() <<std::endl;
 }
 //====================================================================================
 GoGameNode* GoGameTree::GetRoot()

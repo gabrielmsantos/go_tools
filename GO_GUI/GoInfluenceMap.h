@@ -13,6 +13,7 @@
 #include "GoGUI/GobanGUI.h"
 #include "GoGame.h"
 #include "GoDatabase.h"
+#include "MctsPlayer.h"
 
 
 class GoInfluenceMap {
@@ -42,6 +43,7 @@ private:
     static boost::shared_ptr<GoReferee> m_go_referee_ptr;
     static GoGame m_gogame;
     static std::vector<short> m_advisor_map;
+    static MctsPlayer* m_automatic_player;
 };
 
 #endif /* defined(__GoInfluenceMap__GoInfluenceMap__) */

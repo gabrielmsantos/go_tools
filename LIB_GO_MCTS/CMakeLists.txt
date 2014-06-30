@@ -12,8 +12,8 @@ configure_file(
   "${PROJECT_BINARY_DIR}/config.h"
   )
 
-#SET(HEADERS I_GobanObserver.h I_GobanSubject.h)
-SET(SOURCES main.cpp MctsPlayer.cpp MCTree.cpp)
+SET(HEADERS I_PlayOutPolicy.h I_TreePolicy.h MCTree.h)
+SET(SOURCES MctsPlayer.cpp UCTPolicy.cpp PlayOutSearcher.cpp RandomPolicy.cpp)
 
 #If your processor is 64bits, set -m64, otherwise -m32.
 if(UNIX)
@@ -24,8 +24,8 @@ endif()
 
 #include_directories("${PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 #include_directories("/home/gabriel/coding/GO_TOOLS/LIB_GO_UTILS/")
-set(ROOT_PROJECT_SOURCE_DIR "/home/gabriel/coding/GO_TOOLS/")
-set(ROOT_PROJECT_BINARY_DIR "/home/gabriel/coding/GO_TOOLS-build/")
+#set(ROOT_PROJECT_SOURCE_DIR "/home/gabriel/coding/GO_TOOLS/")
+#set(ROOT_PROJECT_BINARY_DIR "/home/gabriel/coding/GO_TOOLS-build/")
 include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 include_directories(${PROJECT_BINARY_DIR})
 
@@ -60,4 +60,3 @@ target_link_libraries(${LIBRARY_NAME} ${Go_UTILS_library})
 #target_link_libraries(${EXECUTABLE_NAME} ${Go_UTILS_library})
 
 endif()
-

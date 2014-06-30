@@ -17,7 +17,7 @@ bool GoReferee::IsLegal(StoneState stone, unsigned int map_x, unsigned int map_y
       Check for SimpleKo
     */
     short next_move = abs(GoUtils::BoardPositionToMove(map_x, map_y, stone));
-    if(next_move == ko_restriction)
+    if( (ko_restriction!= 0) && (next_move == ko_restriction))
     {
         return false;
     }
@@ -41,10 +41,10 @@ bool GoReferee::IsLegal(StoneState stone, unsigned int map_x, unsigned int map_y
         }
 
         //I have divided in 3 segments to be better to read and understand.
+
         /** Getting the Dragon*/
         GobanIntersection* l_dragon = r_goban.GetDragon(x,y);
         l_count = l_dragon->DragonLibertiesCount();
-        //delete l_dragon;
 
         /** Getting the adjacent stone*/
         adj = r_goban.GetStone(x,y);
@@ -56,7 +56,6 @@ bool GoReferee::IsLegal(StoneState stone, unsigned int map_x, unsigned int map_y
         }//Else if the neighbours are not Empty but im gonna connect to another dragon (with liberties) then it is legal
         else if( (adj == stone) && ( l_count > 1))
         {
-
             return true;
         }
         //Else if im gonna capture some stones (snapback for example) it is also legal
