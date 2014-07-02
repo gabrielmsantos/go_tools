@@ -18,7 +18,7 @@ class MCNode
 {
 public:
 
-    explicit MCNode(short move, MCNode* parent = nullptr)
+    explicit MCNode(short move,  MCNode* parent = nullptr)
     {
         //Setting info
         m_info = move_info();
@@ -220,6 +220,9 @@ public:
     {
         delete m_root;
         m_root = new MCNode(0, nullptr);
+        //Setting up a large count value for the root, so it will be expanded right on.
+        m_root->m_info.m_count = 10000;
+
         m_current_node = m_root;
     }
 

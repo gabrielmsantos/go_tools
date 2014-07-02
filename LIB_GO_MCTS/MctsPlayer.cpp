@@ -9,7 +9,7 @@ MctsPlayer::MctsPlayer(int board_size, boost::shared_ptr<GoReferee> l_referee)
     m_tree_policy = new UCTPolicy();
 
 
-    for(int i = 0; i < 300; ++i)
+    for(int i = 0; i < 200; ++i)
     {
         fixed_moves.push_back(i);
     }
@@ -47,11 +47,11 @@ void MctsPlayer::StartSearchFor(CompactBoard* cb, StoneState to_play)
         m_go_game.SetCurrentPlayer(to_play);
 
         //Start SELECT + EXPAND PHASE
-        PlayInTree(count_episodes, move_sequence);
+        PlayInTree(count_episodes, move_sequence);  //O(BOARD_SIZE ^ 2)
 
         //Start PLAY-OUT PHASE (Light Play-out)
-        result = m_playout_searcher.PlayOutGameFrom(m_go_game.GetMainBoard().GetCompactBoard(), m_go_game.GetCurrentPlayer());
-        //result = 1;
+        //result = m_playout_searcher.PlayOutGameFrom(m_go_game.GetMainBoard().GetCompactBoard(), m_go_game.GetCurrentPlayer());
+        result = 1;
 
         //Update the choosen path in the tree, coming from the current node till the root node.
         UpdateSequenceInTree(result);
@@ -68,14 +68,13 @@ void MctsPlayer::StartSearchFor(CompactBoard* cb, StoneState to_play)
 unsigned int MctsPlayer::ExpandTree()
 {
 //    std::vector<short> legal_moves;
-//    m_go_game.GenerateAllLegalMoves(legal_moves);
+    //m_go_game.GenerateAllLegalMoves(legal_moves); //O(BOARD_SIZE ^ 2)
     std::vector<short>::iterator it;
 
     MCNode* node;
-    //for(it = legal_moves.begin(); it != legal_moves.end(); ++it)
+    //for(it = legal_moves.begin(); it != legal_moves.end(); ++it) //O(BOARD_SIZE ^ 2) It can be optimized if I create the node into GenerateLegalMoves
     for(it = fixed_moves.begin(); it != fixed_moves.end(); ++it)
     {
-
         node = new MCNode(*it);
         /**
          * It will add the new nodes as children of the current_node in the tree
@@ -99,16 +98,16 @@ void MctsPlayer::PlayInTree(unsigned int count_sim, std::vector<short> &move_seq
     MCNode* selected_node;
 
     //Always start from root
-    m_tree.SetCurrentNode(m_tree.GetRoot());
+    m_tree.SetCurrentNode(m_tree.GetRoot()); //O(1)
 
     //Start to play in tree and stop when you Expand a node
     while(true)
     {
-        current_node = m_tree.GetCurrentNode();
-        parent_node = current_node->GetParent();
+        current_node = m_tree.GetCurrentNode();  //O(1)
+        parent_node = current_node->GetParent(); //O(1)
 
         //IF it was not expanded before neither it is final.
-        if( !(current_node->HasChildren() || current_node->IsFinal() ) )
+        if( !(current_node->HasChildren() || current_node->IsFinal() ) ) //O(1)
         {
             //
             /**
@@ -119,20 +118,20 @@ void MctsPlayer::PlayInTree(unsigned int count_sim, std::vector<short> &move_seq
              * Remember that the count starts at 1.
              *
             */
-            if((current_node->GetCount() > expand_threshold) || ( parent_node == NULL))
+            if((current_node->GetCount() > expand_threshold) || ( parent_node == NULL)) //O(1)
             {
                 //Expand the tree
-                num_children = ExpandTree();
+                num_children = ExpandTree(); //O(BOARD_SIZE ^ 2)
 
                 //If I can't expand it, it is final position.
-                if(num_children == 0)
+                if(num_children == 0)   //O(1)
                 {
-                    current_node->SetFinal();
+                    current_node->SetFinal();  //O(1)
                     break;
                 }
 
                 //set break: After select a child pass it to the play-out phase.
-                stop_sim = true;
+                stop_sim = true; //O(1)
 
             }else
             {
@@ -148,13 +147,13 @@ void MctsPlayer::PlayInTree(unsigned int count_sim, std::vector<short> &move_seq
         }else
         {
             parent_visits = count_sim;
-        }
+        }                                           //O(1)
 
-        selected_node = m_tree_policy->SelectChild(current_node, parent_visits);
+        selected_node = m_tree_policy->SelectChild(current_node, parent_visits); //O(BOARD_SIZE ^  2)
 
         //Execute the selected move
-        //if(true || m_go_game.PlayMove(selected_node->GetMove()))
-        if(true)
+        if(true || m_go_game.PlayMove(selected_node->GetMove()))
+        //if(true)//O(1)
         {
             //Set Current Node
             m_tree.SetCurrentNode(selected_node);
@@ -169,6 +168,7 @@ void MctsPlayer::PlayInTree(unsigned int count_sim, std::vector<short> &move_seq
         //If Stop_SIM or is it final? Then return
         if((stop_sim) || selected_node->IsFinal())
             break;
+
     }
 }
 
