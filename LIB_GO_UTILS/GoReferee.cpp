@@ -64,6 +64,7 @@ bool GoReferee::IsLegal(StoneState stone, unsigned int map_x, unsigned int map_y
             return true;
         }
     }
+
     return false;
 }
 

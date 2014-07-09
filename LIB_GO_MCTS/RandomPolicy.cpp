@@ -75,7 +75,6 @@ short RandomPolicy::GeneratePlayOutMove(SimpleGoGame& go_game_ref)
 
     go_game_ref.GenerateAllLegalMoves(legal_moves);
 
-
     std::vector<short> potential_eye_vec;
 
     short move = 0;
@@ -91,9 +90,6 @@ short RandomPolicy::GeneratePlayOutMove(SimpleGoGame& go_game_ref)
         int position = rand() % legal_moves.size();
 
         move = legal_moves[position];
-
-        //REMOVE IT
-        return move;
 
         std::pair<unsigned short, unsigned short> board_pos = GoUtils::MoveToBoardPosition(move);
 

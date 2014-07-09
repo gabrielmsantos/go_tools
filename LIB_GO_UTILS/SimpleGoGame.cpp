@@ -79,6 +79,7 @@ void SimpleGoGame::GenerateAllLegalMoves(std::vector<short>& result)
         for(second_it = (*it).begin(); second_it!= (*it).end(); ++second_it)
         {
             l_gint = *second_it;
+
             if((l_gint.GetStone() == EMPTY) &&  m_goReferee_sptr->IsLegal(m_currentPlayer,l_gint.GetX(), l_gint.GetY(), m_goban, m_simple_ko_restriction))
             {
                 result.push_back(GoUtils::BoardPositionToMove(l_gint.GetX(), l_gint.GetY(), m_currentPlayer));
