@@ -214,6 +214,10 @@ public:
     inline void AddNode(MCNode* node)
     {
         m_current_node->AddChild(node);
+        if(node->GetValue() < 0)
+        {
+            int abc = 1;
+        }
     }
 
     inline void Clear()

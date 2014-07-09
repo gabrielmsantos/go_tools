@@ -79,7 +79,6 @@ inline std::pair<double, double> ScoreSimpleEndPosition(const Goban& l_goban)
                 if( GobanUtils::IsOnePointEye((*second_it).GetX(), (*second_it).GetY(), l_goban, BLACK ))
                 {
                     black_score++;
-
                 }else if( GobanUtils::IsOnePointEye((*second_it).GetX(), (*second_it).GetY(), l_goban,  WHITE )) //One point eye white
                 {
                     white_score++;

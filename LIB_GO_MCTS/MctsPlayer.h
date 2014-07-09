@@ -55,8 +55,6 @@ I_TreePolicy* m_tree_policy;
 /** Minimum number of simulations to be performed.*/
 unsigned int m_minimum_simulations;
 
-std::vector<short> fixed_moves;
-
 };
 
 #endif // MCTSPLAYER_H

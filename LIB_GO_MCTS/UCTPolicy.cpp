@@ -33,6 +33,7 @@ MCNode* UCTPolicy::SelectChild(MCNode* node, unsigned int parent_visits)
     {
         aux_node = *it;
 
+
         if(aux_node->GetCount() == 1)
             result = fpu;
         else
@@ -44,6 +45,11 @@ MCNode* UCTPolicy::SelectChild(MCNode* node, unsigned int parent_visits)
             max_result = result;
             selected = aux_node;
         }
+    }
+
+    if(selected == nullptr)
+    {
+        selected = NULL;
     }
 
     return selected;

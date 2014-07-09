@@ -11,18 +11,19 @@ class I_PlayoutPolicy
 
 public:
 
-    explicit I_PlayoutPolicy(SimpleGoGame& go_game):m_go_game_ref(go_game)
-    {
-    }
+//    explicit I_PlayoutPolicy(SimpleGoGame& go_game):m_go_game_ref(go_game)
+//    {
+//    }
 
-    virtual short GeneratePlayOutMove() = 0;
+//    virtual short GeneratePlayOutMove() = 0;
+    virtual short GeneratePlayOutMove(SimpleGoGame& go_game_ref) = 0;
 
     virtual ~I_PlayoutPolicy(){}
     //======================================================================================
 
 protected:
 
-    SimpleGoGame& m_go_game_ref;
+//    SimpleGoGame& m_go_game_ref;
 };
 
 #endif // I_PLAYOUTPOLICY_H

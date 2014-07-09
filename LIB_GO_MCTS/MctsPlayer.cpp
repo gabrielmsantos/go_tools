@@ -5,14 +5,9 @@ MctsPlayer::MctsPlayer(int board_size, boost::shared_ptr<GoReferee> l_referee)
     :m_go_game(board_size, l_referee),
       m_playout_searcher(board_size, l_referee)
 {
+    srand (time(NULL));
     m_minimum_simulations = 1000;
     m_tree_policy = new UCTPolicy();
-
-
-    for(int i = 0; i < 200; ++i)
-    {
-        fixed_moves.push_back(i);
-    }
 }
 
 //===================================================
@@ -50,8 +45,10 @@ void MctsPlayer::StartSearchFor(CompactBoard* cb, StoneState to_play)
         PlayInTree(count_episodes, move_sequence);  //O(BOARD_SIZE ^ 2)
 
         //Start PLAY-OUT PHASE (Light Play-out)
-        //result = m_playout_searcher.PlayOutGameFrom(m_go_game.GetMainBoard().GetCompactBoard(), m_go_game.GetCurrentPlayer());
-        result = 1;
+        //TODO DO NOT PASS COMPACT BOARD AGAIN (TOO EXPENSIVE)
+//        result = m_playout_searcher.PlayOutGameFrom(m_go_game.GetMainBoard().GetCompactBoard(), m_go_game.GetCurrentPlayer());
+        result = m_playout_searcher.PlayOutGameFrom(m_go_game);
+//        result = 1;
 
         //Update the choosen path in the tree, coming from the current node till the root node.
         UpdateSequenceInTree(result);
@@ -67,23 +64,22 @@ void MctsPlayer::StartSearchFor(CompactBoard* cb, StoneState to_play)
 //===================================================
 unsigned int MctsPlayer::ExpandTree()
 {
-//    std::vector<short> legal_moves;
-    //m_go_game.GenerateAllLegalMoves(legal_moves); //O(BOARD_SIZE ^ 2)
+    std::vector<short> legal_moves;
+    m_go_game.GenerateAllLegalMoves(legal_moves); //O(BOARD_SIZE ^ 2)
     std::vector<short>::iterator it;
 
     MCNode* node;
-    //for(it = legal_moves.begin(); it != legal_moves.end(); ++it) //O(BOARD_SIZE ^ 2) It can be optimized if I create the node into GenerateLegalMoves
-    for(it = fixed_moves.begin(); it != fixed_moves.end(); ++it)
+    for(it = legal_moves.begin(); it != legal_moves.end(); ++it) //O(BOARD_SIZE ^ 2) It can be optimized if I create the node into GenerateLegalMoves
     {
         node = new MCNode(*it);
+
         /**
          * It will add the new nodes as children of the current_node in the tree
         */
         m_tree.AddNode(node);
     }
 
-    //return legal_moves.size();
-    return fixed_moves.size();
+    return legal_moves.size();
 }
 
 //===================================================
@@ -141,6 +137,7 @@ void MctsPlayer::PlayInTree(unsigned int count_sim, std::vector<short> &move_seq
 
         //Select a child from the current node according to the current Tree Policy.
         unsigned int parent_visits;
+
         if(parent_node != NULL)
         {
             parent_visits = parent_node->GetCount();
@@ -151,9 +148,13 @@ void MctsPlayer::PlayInTree(unsigned int count_sim, std::vector<short> &move_seq
 
         selected_node = m_tree_policy->SelectChild(current_node, parent_visits); //O(BOARD_SIZE ^  2)
 
+        if(selected_node == nullptr)
+        {
+            selected_node = NULL;
+        }
+
         //Execute the selected move
-        if(true || m_go_game.PlayMove(selected_node->GetMove()))
-        //if(true)//O(1)
+        if( m_go_game.PlayMove(selected_node->GetMove()))
         {
             //Set Current Node
             m_tree.SetCurrentNode(selected_node);

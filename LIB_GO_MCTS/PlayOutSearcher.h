@@ -9,8 +9,16 @@ class PlayOutSearcher
 public:
 
     PlayOutSearcher(unsigned int board_size, boost::shared_ptr<GoReferee> l_referee);
-    double PlayOutGameFrom(CompactBoard* cb, StoneState to_play);
+//    double PlayOutGameFrom(CompactBoard* cb, StoneState to_play);
+
+    /**
+     * Trying another approach
+    */
+    double PlayOutGameFrom(SimpleGoGame& simple_go_game_ref);
+
     short GeneratePlayOutMove();
+
+    short GeneratePlayOutMove(SimpleGoGame& simple_go_game_ref);
 
 private:
 
@@ -20,3 +28,4 @@ I_PlayoutPolicy* m_playout_policy_ptr;
 };
 
 #endif // PLAYOUTSEARCHER_H
+

@@ -6,9 +6,10 @@
 class RandomPolicy: public I_PlayoutPolicy
 {
 public:
-    explicit RandomPolicy(SimpleGoGame& go_game);
+    explicit RandomPolicy();
 
-    virtual short GeneratePlayOutMove();
+//    virtual short GeneratePlayOutMove();
+    virtual short GeneratePlayOutMove(SimpleGoGame& go_game_ref);
 };
 
 #endif // RANDOMPOLICY_H
