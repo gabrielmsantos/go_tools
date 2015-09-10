@@ -25,7 +25,7 @@ SET(SOURCES main.cpp GoInfluenceMap.cpp)
 
 #If your processor is 64bits, set -m64, otherwise -m32.
 if(UNIX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -std=gnu++0x")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -std=gnu++0x ")
 elseif(WIN32)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -std=c++0x -mwindows ")
 endif()
@@ -50,7 +50,7 @@ include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_MCTS/")
 
 if(UNIX)
     #This sets where you have installed SFML
-    set(SFML_ROOT "/home/gabriel/libraries/SFML-2.1")
+    #set(SFML_ROOT "/home/gabriel/libraries/SFML-2.1")
 
     #Go Utils lib
     set(Go_UTILS_library "${ROOT_PROJECT_BINARY_DIR}/LIB_GO_UTILS/libgo_utils.so")
@@ -94,20 +94,21 @@ add_executable(${EXECUTABLE_NAME} ${HEADERS} ${SOURCES} ${GoGUIFiles} ${Influenc
 
 if(UNIX)
     #Create a CMakeFiles/cmake_modules tree directory then copy the SFML.cmake file (Found on the SFML2.1 folder), or just point this to the SFML.cmake file.
-    set(CMAKE_SOURCE_DIR "/home/gabriel/CMakeFiles")
+    #set(CMAKE_SOURCE_DIR "/home/gabriel/CMakeFiles")
 
     #Install boost (Currently using boost_1.55.0)
     #Install libglew-dev (It must be libglew1.7 or later)
 
     # Detect and add SFML
-    set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
+    #set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
     #Find any version 2.X of SFML
     #See the FindSFML.cmake file for additional details and instructions
-    find_package(SFML 2 REQUIRED system window graphics network audio)
-    if(SFML_FOUND)
-      include_directories(${SFML_INCLUDE_DIR} )
-      target_link_libraries(${EXECUTABLE_NAME}  ${Go_UTILS_library}  ${GO_DATABASE} ${GO_MCTS} ${SFML_LIBRARIES} GLEW)
-    endif()
+    #find_package(SFML 2 REQUIRED system window graphics network audio)
+    #if(SFML_FOUND)
+    #  include_directories(${SFML_INCLUDE_DIR} )
+      target_link_libraries(${EXECUTABLE_NAME}  sfml-system sfml-window sfml-graphics sfml-audio ${Go_UTILS_library}  ${GO_DATABASE} ${GO_MCTS} )
+#${SFML_LIBRARIES} GLEW)
+    #endif()
 
 elseif(WIN32)
 

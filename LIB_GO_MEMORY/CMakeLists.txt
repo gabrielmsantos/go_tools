@@ -17,15 +17,15 @@ SET(SOURCES SGFParser.cpp GoDatabase.cpp main.cpp)
 
 #If your processor is 64bits, set -m64, otherwise -m32.
 if(UNIX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -std=gnu++0x -lboost_filesystem -lboost_system")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -std=gnu++0x")
 elseif(WIN32)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lm -std=c++0x -lboost_filesystem -lboost_system")
 endif()
 
 #include_directories("${PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 #include_directories("/home/gabriel/coding/GO_TOOLS/LIB_GO_UTILS/")
-set(ROOT_PROJECT_SOURCE_DIR "/home/gabriel/coding/GO_TOOLS/")
-set(ROOT_PROJECT_BINARY_DIR "/home/gabriel/coding/GO_TOOLS-build/")
+#set(ROOT_PROJECT_SOURCE_DIR "/home/gabriel/coding/GO_TOOLS/")
+#set(ROOT_PROJECT_BINARY_DIR "/home/gabriel/coding/GO_TOOLS-build/")
 include_directories("${ROOT_PROJECT_SOURCE_DIR}/LIB_GO_UTILS/")
 include_directories(${PROJECT_BINARY_DIR})
 
@@ -56,7 +56,7 @@ add_library(${LIBRARY_NAME} SHARED ${HEADERS} ${SOURCES})
 
 if(UNIX)
 
-target_link_libraries(${LIBRARY_NAME} ${Go_UTILS_library})
+target_link_libraries(${LIBRARY_NAME} boost_filesystem boost_system ${Go_UTILS_library})
 #target_link_libraries(${EXECUTABLE_NAME} ${Go_UTILS_library})
 
 endif()
