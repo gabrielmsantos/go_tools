@@ -44,6 +44,9 @@ private:
     static GoGame m_gogame;
     static std::vector<short> m_advisor_map;
     static MctsPlayer* m_automatic_player;
+
+    static bool using_database_advisor;
+    static bool using_automatic_player;
 };
 
 #endif /* defined(__GoInfluenceMap__GoInfluenceMap__) */

@@ -32,11 +32,9 @@ std::pair<bool,short> Goban::PutStone(unsigned int r_mapPosition_x, unsigned int
     {
         m_intersections[r_mapPosition_x][r_mapPosition_y].PutStone(stone);
 
-        //Distribute the influence over the board
-        //m_influence_model->PutInfluence(r_mapPosition, stone, *this);
-
         //TODO THINK ABOUT THIS
-        //NotifyObservers(sf::Vector2i(r_mapPosition_x,r_mapPosition_y), stone);
+        //#### This method notify all observers of the game INFLUENCE & STATISTICS!!!
+        NotifyObservers(sf::Vector2i(r_mapPosition_x,r_mapPosition_y), stone);
 
         //Settle the Dragons (Groups of Stones) {Remove Stones, Join Dragons, etc..} Go Rules Here
         move_ko_restriction = CheckDragons(&(m_intersections[r_mapPosition_x][r_mapPosition_y]));
@@ -192,8 +190,6 @@ unsigned short Goban::RemoveDragon(GobanIntersection* l_dragon)
 bool Goban::RemoveStone(const sf::Vector2i &r_mapPosition)
 {
     if (GetStone(r_mapPosition.x, r_mapPosition.y)!=EMPTY) {
-
-        //m_influence_model->PutInfluence(r_mapPosition, GetStone(r_mapPosition.x, r_mapPosition.y) * (-1), *this);
 
         NotifyObservers(r_mapPosition,  GetStone(r_mapPosition.x, r_mapPosition.y) * (-1));
 

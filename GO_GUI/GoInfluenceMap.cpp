@@ -14,18 +14,18 @@
 
 void GoInfluenceMap::Start()
 {
-
     CrossInfluence* m_goban_influence = new CrossInfluence(m_gogame.GetMainBoard().Dimension());
     m_gogame.AddInfluenceAnalysis(m_goban_influence);
     m_gogame.RegisterObserver(m_goban_influence);
 
     //m_go_database.InsertGamesFrom("/home/gabriel/Downloads/games/",true);
         //m_go_database.InsertGamesFrom("/home/gabriel/DBGames",true);
-    m_go_database.InsertGamesFrom("/home/gabriel/DBGames/FewGames",true);
-
-    m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
-
-    std::cout <<m_go_database.GetNumberOfNodes() << " nodes inserted"<<std::endl;
+    if(using_database_advisor)
+    {
+        m_go_database.InsertGamesFrom("/home/gabriel/DBGames/FewGames",true);
+        m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
+        std::cout <<m_go_database.GetNumberOfNodes() << " nodes inserted"<<std::endl;
+    }
 
     //Game was initialized before
     if(m_gameState != GoInfluenceMap::UNINITIALIZED)
@@ -104,17 +104,23 @@ void GoInfluenceMap::MapClick(const sf::Event& rEvent)
 
         m_gogame.PlayMove(l_mapPos.x,l_mapPos.y);
 
-        //Automatic Player
-        m_automatic_player->StartSearchFor(m_gogame.GetMainBoard().GetCompactBoard(), m_gogame.GetCurrentPlayer());
-        std::vector<short> moves = m_automatic_player->GetBestMovesFound();
-        if(moves.size() > 0 )
+//        #####################  ATTENTION: This is the Automatic Player code, leave it inactive while the engine is not done
+
+        if(using_automatic_player)
         {
-            std::pair<unsigned short, unsigned short> pos = GoUtils::MoveToBoardPosition(moves[0]);
-            m_gogame.PlayMove(pos.first,pos.second);
-        }else
-        {
-            std::cout << "PASS -- " << std::endl;
+            m_automatic_player->StartSearchFor(m_gogame.GetMainBoard().GetCompactBoard(), m_gogame.GetCurrentPlayer());
+            std::vector<short> moves = m_automatic_player->GetBestMovesFound();
+            if(moves.size() > 0 )
+            {
+                std::pair<unsigned short, unsigned short> pos = GoUtils::MoveToBoardPosition(moves[0]);
+                m_gogame.PlayMove(pos.first,pos.second);
+            }else
+            {
+                std::cout << "PASS -- " << std::endl;
+            }
         }
+//        ##########################  END Automatic PLayer ##############################################
+
 
 //        std::vector<short>::iterator it;
 //        std::vector<short> legal_moves = m_gogame.GenerateAllLegalMoves();
@@ -125,15 +131,18 @@ void GoInfluenceMap::MapClick(const sf::Event& rEvent)
 //        }
 //        std::cout << std::endl;
 
+//        #####################  ATTENTION: This is the DataBase Advisor #####################
         //Get Advisors
-        m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
+        if(using_database_advisor)
+            m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
 
+//        ##########################  END Database Advisor ##############################################
         //Put Engine here
 
     }else if (rEvent.type == sf::Event::MouseButtonReleased && rEvent.mouseButton.button == sf::Mouse::Right)
     {
         m_gogame.TakeBack();
-        m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
+//        m_advisor_map = m_go_database.NextMoveAdvisor(m_gogame.GetGameTree().GetCurrentNode()->GetCompactBoard());
     }
 }
 
@@ -167,4 +176,8 @@ sf::RenderWindow GoInfluenceMap::m_mainWindow;
 std::vector<short> GoInfluenceMap::m_advisor_map;
 GoDatabase GoInfluenceMap::m_go_database;
 MctsPlayer* GoInfluenceMap::m_automatic_player = new MctsPlayer(BOARD_SIZE, m_go_referee_ptr);
+
+bool GoInfluenceMap::using_database_advisor =false;
+bool GoInfluenceMap::using_automatic_player =false;
+
 
