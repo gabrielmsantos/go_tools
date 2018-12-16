@@ -1,5 +1,7 @@
 # GO TOOLS #
 
+![Influence Board](https://github.com/gabrielmsantos/go_tools/blob/master/image.png)
+
 You need cmake at least at version 2.6. Go get it.
 ```
 apt-get install cmake
