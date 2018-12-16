@@ -3,6 +3,7 @@
 //  GoInfluenceMap
 //
 //  Created by Giordano Bruno on 25/01/14.
+//  Modified by Gabriel Santos on 18/12/18
 //
 
 #include "GoInfluenceMap.h"

@@ -18,7 +18,7 @@ GobanGUI::GobanGUI(int board_size):
     m_colored_squares(board_size),
     m_stone_sprites(board_size)
 {
-    if(!m_font.loadFromFile("/usr/share/fonts/truetype/ubuntu-font-family/Ubuntu-R.ttf")) //<- in the same folder as exe
+    if(!m_font.loadFromFile("/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf")) //<- in the same folder as exe
     //if(!m_font.loadFromFile("Fonts\\arial.ttf")) //<- in the same folder as exe
     {
         std::cout << "Failed to load font." << std::endl;

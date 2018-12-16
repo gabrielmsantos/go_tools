@@ -11,6 +11,7 @@
 #include "GoInfluenceModel/I_InfluenceModel.h"
 #include "I_GobanSubject.h"
 #include "GoUtils.h"
+#include <iostream>
 
 #define SIZE_BYTE 8
 
