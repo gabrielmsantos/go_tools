@@ -19,4 +19,8 @@ apt-get install libboost1.55-all-dev
 Also, do not forget to copy the Images directory to where your executable is.
 For example, if through cmake you create another Build directory, then there will be a folder called GoGui. There is where your executable is, so, copy the Images folder to there and you are good to go.
 
-gabrielmsantos@gmail.com
+## Authors
+* **Gabriel Santos** - *gabrielmsantos@gmail.com*  
+* **Giordano Ferreira** - *giordanobsf@gmail.com*
+
+
